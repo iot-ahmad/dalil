@@ -1,0 +1,13 @@
+{
+  "name": "dalil",
+  "version": "1.0.0",
+  "description": "DALIL - دليل | Jordan Travel Guide & Route Builder",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Build successful'",
+    "start": "serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}
