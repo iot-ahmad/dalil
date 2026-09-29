@@ -3,6 +3,156 @@ import { firebaseConfig as cfg } from './firebase-config.js';
 const FIREBASE_CDN = 'https://www.gstatic.com/firebasejs/10.12.0/';
 let fb = null;
 
+const PLACE_IMAGES = {
+  petra: 'assets/img/petraMain.png',
+  petra_deir: 'assets/img/petra_deir.jpg',
+  deadsea: 'assets/img/deadsSea.png',
+  wadirum: 'assets/img/wadirum.jpg',
+  wadirum_night: 'assets/img/petraNightCamp.png',
+  aqaba: 'assets/img/aqaba.jpg',
+  main: 'assets/img/maienBaths.png',
+  jerash: 'assets/img/jerash_colonnade.jpg',
+  jerash_colonnade: 'assets/img/jerash_colonnade.jpg',
+  ajloun: 'assets/img/ajlounCastle.jpg',
+  amman: 'assets/img/amman.png',
+  salt: 'assets/img/Salt_Street.png',
+  ummqais: 'assets/img/omqies.png',
+  north: 'assets/img/irbid.png'
+};
+
+const PLACE_GALLERIES = {
+  petra: [
+    { src: 'assets/img/petra_deir.jpg', en: 'Petra Monastery', ar: 'دير البتراء' },
+    { src: 'assets/img/petraBaloon.png', en: 'Petra by balloon', ar: 'البتراء من المنطاد' },
+    { src: 'assets/img/petraCamping.png', en: 'Petra camp', ar: 'مخيم البتراء' },
+    { src: 'assets/img/petraNightCamp.png', en: 'Petra night camp', ar: 'مخيم البتراء ليلاً' }
+  ],
+  aqaba: [
+    { src: 'assets/img/aqapaDiving.jpg', en: 'Aqaba diving', ar: 'الغوص في العقبة' }
+  ],
+  deadsea: [
+    { src: 'assets/img/deadsea_health_recovery.jpg', en: 'Dead Sea wellness', ar: 'الاستجمام في البحر الميت' }
+  ],
+  amman: [
+    { src: 'assets/img/downtownAmman.png', en: 'Downtown Amman', ar: 'وسط البلد في عمّان' },
+    { src: 'assets/img/RainbowStreetAmman.png', en: 'Rainbow Street', ar: 'شارع الرينبو' }
+  ]
+};
+
+const FOOD_DISHES = [
+  {
+    id: 'mansaf',
+    name: { en: 'Mansaf', ar: 'المنسف' },
+    image: 'assets/img/Mansaf_food.png',
+    description: {
+      en: 'Jordan’s signature celebratory dish: tender lamb served over rice and shrak bread with a rich jameed sauce.',
+      ar: 'طبق الأردن الأشهر في الولائم والمناسبات: لحم ضأن طري فوق الأرز وخبز الشراك، ويُقدّم مع صلصة الجميد الغنية.'
+    },
+    ingredients: {
+      en: ['Lamb', 'Jameed (dried fermented yogurt)', 'Rice', 'Shrak bread', 'Almonds or pine nuts'],
+      ar: ['لحم الضأن', 'الجميد (لبن مجفف ومخمّر)', 'الأرز', 'خبز الشراك', 'اللوز أو الصنوبر']
+    }
+  },
+  {
+    id: 'maqlobeh',
+    name: { en: 'Maqlobeh', ar: 'المقلوبة' },
+    image: 'assets/img/Maqlobeh_food.png',
+    description: {
+      en: 'A comforting layered rice dish cooked with vegetables and meat, then turned upside down before serving.',
+      ar: 'طبق أرز منزلي تُرصّ فيه الخضار واللحم في طبقات، ثم تُقلب القدر رأساً على عقب عند التقديم.'
+    },
+    ingredients: {
+      en: ['Rice', 'Chicken or lamb', 'Eggplant or cauliflower', 'Potatoes', 'Warm spices'],
+      ar: ['الأرز', 'الدجاج أو لحم الضأن', 'الباذنجان أو القرنبيط', 'البطاطا', 'بهارات مشكلة']
+    }
+  },
+  {
+    id: 'mahashie',
+    name: { en: 'Mahashi', ar: 'المحاشي' },
+    image: 'assets/img/mahashie_food.png',
+    description: {
+      en: 'Vegetables carefully stuffed with a seasoned rice filling and gently simmered until tender.',
+      ar: 'خضار تُحشى بخليط أرز متبّل وتُطهى على مهل حتى تنضج وتتشرب النكهات.'
+    },
+    ingredients: {
+      en: ['Zucchini, eggplant or peppers', 'Rice', 'Tomatoes', 'Parsley and herbs', 'Warm spices'],
+      ar: ['الكوسا أو الباذنجان أو الفلفل', 'الأرز', 'البندورة', 'البقدونس والأعشاب', 'بهارات مشكلة']
+    }
+  },
+  {
+    id: 'kabab',
+    name: { en: 'Kabab', ar: 'الكباب' },
+    image: 'assets/img/Kabab_food.png',
+    description: {
+      en: 'Juicy seasoned meat grilled over charcoal and commonly served with flatbread and fresh accompaniments.',
+      ar: 'لحم متبّل ومشوي على الفحم، يُقدّم غالباً مع الخبز العربي والخضار الطازجة.'
+    },
+    ingredients: {
+      en: ['Ground lamb or beef', 'Onion', 'Parsley', 'Black pepper', 'Cumin and salt'],
+      ar: ['لحم ضأن أو بقري مفروم', 'البصل', 'البقدونس', 'الفلفل الأسود', 'الكمون والملح']
+    }
+  },
+  {
+    id: 'kunafeh',
+    name: { en: 'Kunafeh', ar: 'الكنافة' },
+    image: 'assets/img/Qunafah_food.png',
+    description: {
+      en: 'A beloved warm dessert of crisp pastry and soft cheese, finished with fragrant sugar syrup.',
+      ar: 'حلوى محبوبة تُقدّم دافئة، تجمع عجينة مقرمشة وجبناً طرياً مع القطر المعطّر.'
+    },
+    ingredients: {
+      en: ['Kataifi pastry or semolina', 'Nabulsi cheese', 'Butter or ghee', 'Sugar syrup', 'Pistachios'],
+      ar: ['عجينة الكنافة أو السميد', 'الجبنة النابلسية', 'الزبدة أو السمن', 'القطر', 'الفستق الحلبي']
+    }
+  },
+  {
+    id: 'baklava',
+    name: { en: 'Baklawa', ar: 'البقلاوة' },
+    image: 'assets/img/Baqlawa_food.png',
+    description: {
+      en: 'Delicate layers of crisp pastry filled with nuts and lightly sweetened with syrup.',
+      ar: 'طبقات رقيقة ومقرمشة من العجين محشوة بالمكسرات ومحلاة بالقطر.'
+    },
+    ingredients: {
+      en: ['Filo pastry', 'Pistachios or walnuts', 'Butter or ghee', 'Sugar syrup'],
+      ar: ['عجينة الفيلو', 'الفستق الحلبي أو الجوز', 'الزبدة أو السمن', 'القطر']
+    }
+  }
+];
+
+const getPlaceImage = place => PLACE_IMAGES[place.id] || '';
+const TOUR_PRICES = { groupPerTraveler: 25, privateGuide: 60 };
+const getGuidedTourTotal = (type, travelers) => {
+  if (type === 'group' && Number.isInteger(travelers) && travelers > 0) {
+    return TOUR_PRICES.groupPerTraveler * travelers;
+  }
+  if (type === 'private') return TOUR_PRICES.privateGuide;
+  return 0;
+};
+const formatLocalDate = date => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+const getTodayDate = () => formatLocalDate(new Date());
+const getDefaultTourDate = () => {
+  const date = new Date();
+  date.setDate(date.getDate() + 7);
+  return formatLocalDate(date);
+};
+const getFoodName = dish => dish.name[STATE.lang];
+const getPlaceImageStyle = place => {
+  const image = getPlaceImage(place);
+  return image
+    ? `background-image: url('${image}')`
+    : 'background-image: linear-gradient(135deg, #48535a, #131922)';
+};
+const escapeHTML = value => String(value).replace(/[&<>"']/g, character => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+}[character]));
+
 // Initialize Firebase if user provided real keys
 if (cfg && cfg.apiKey && !cfg.apiKey.startsWith('YOUR')) {
   try {
@@ -25,7 +175,39 @@ if (cfg && cfg.apiKey && !cfg.apiKey.startsWith('YOUR')) {
 // Helpers
 const $ = selector => document.querySelector(selector);
 const $$ = selector => document.querySelectorAll(selector);
-const getLS = key => JSON.parse(localStorage.getItem(key) || 'null');
+const getLS = key => {
+  try {
+    const storedValue = localStorage.getItem(key);
+    if (storedValue === null) return null;
+    try {
+      return JSON.parse(storedValue);
+    } catch (err) {
+      if (key === 'dalilLang' && ['en', 'ar'].includes(storedValue)) return storedValue;
+      throw err;
+    }
+  } catch (err) {
+    console.warn(`Could not read saved data for "${key}":`, err);
+    return null;
+  }
+};
+
+const setLS = (key, value) => {
+  try {
+    localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+    return true;
+  } catch (err) {
+    console.warn(`Could not save data for "${key}":`, err);
+    return false;
+  }
+};
+
+const removeLS = key => {
+  try {
+    localStorage.removeItem(key);
+  } catch (err) {
+    console.warn(`Could not remove saved data for "${key}":`, err);
+  }
+};
 
 // Comprehensive Jordan Places with Real GPS Coordinates
 const PLACES = [
@@ -430,6 +612,126 @@ const PLACES = [
       { en: 'Laser-Guided Astronomy Session', ar: 'جلسة الرصد الفلكي بالليزر والتلسكوب', descEn: 'Learn how Bedouin navigators read constellations for desert travel.', descAr: 'التعرف على النجوم والأبراج وكيف كان البدو يستدلون بها في رحلاتهم الصحراوية.' },
       { en: 'Campfire Stories & Oud Music', ar: 'جلسة السمر على العود وأنغام البادية', descEn: 'Authentic desert hospitality with acoustic melodies and folklore stories.', descAr: 'أمسية دافئة حول موقد النار على أنغام آلة العود والربابة وحكايات الصحراء.' }
     ]
+  },
+  {
+    id: 'ummqais',
+    lat: 32.6564,
+    lng: 35.6848,
+    tag: 'HISTORY',
+    tagAr: 'تاريخ',
+    c: 'history',
+    n: 'Umm Qais (Gadara)',
+    a: 'أم قيس (جدارا)',
+    r: 'Irbid',
+    ra: 'إربد',
+    sub: 'Black basalt ruins above the Jordan Valley',
+    subAr: 'آثار بازلتية سوداء تطل على وادي الأردن',
+    o: 1.2,
+    d: 0.5,
+    cost: 10,
+    s: 'Ancient streets, sweeping views and a slower northern escape',
+    sa: 'شوارع أثرية وإطلالات واسعة ورحلة هادئة في الشمال',
+    why: 'Explore the basalt remains of ancient Gadara, where colonnaded streets, a Roman theatre and Ottoman-era houses overlook the Jordan Valley and the Sea of Galilee.',
+    whyAr: 'اكتشف آثار مدينة جدارا المبنية بحجر البازلت، من الشوارع ذات الأعمدة والمسرح الروماني إلى البيوت العثمانية، مع إطلالات واسعة على وادي الأردن وبحيرة طبريا.',
+    best: 'Roman history • Valley viewpoints • Village walks',
+    bestAr: 'التاريخ الروماني • إطلالات الوادي • جولات القرية',
+    time: 'Half day',
+    timeAr: 'نصف يوم',
+    tip: 'Visit in spring for green hills and clear views; bring a light layer for the breezy hilltop.',
+    tipAr: 'زرها في الربيع للاستمتاع بالتلال الخضراء وصفاء الإطلالة، وخذ معك سترة خفيفة للهواء.',
+    ticket: 'Jordan Pass accepted; check current rates before visiting.',
+    ticketAr: 'تُقبل بطاقة Jordan Pass؛ تحقق من الرسوم الحالية قبل الزيارة.',
+    hours: 'Daytime opening hours; confirm locally before your visit.',
+    hoursAr: 'تُزار نهاراً؛ تحقق من أوقات العمل محلياً قبل الانطلاق.',
+    season: 'Spring and early autumn',
+    seasonAr: 'الربيع وبداية الخريف',
+    food: 'Local olive oil, seasonal produce and northern Jordanian dishes',
+    foodAr: 'زيت الزيتون المحلي وموسم الخضار وأطباق شمال الأردن',
+    highlights: [
+      { en: 'Roman Theatre', ar: 'المسرح الروماني', descEn: 'A dark basalt theatre set against the northern hills.', descAr: 'مسرح من حجر البازلت الداكن تحيط به تلال الشمال.' },
+      { en: 'Colonnaded Street', ar: 'شارع الأعمدة', descEn: 'Walk the ancient streets through the remains of Gadara.', descAr: 'تجول في شوارع جدارا القديمة بين بقايا المدينة الأثرية.' },
+      { en: 'The Hilltop Viewpoint', ar: 'الإطلالة من أعلى التلة', descEn: 'Wide views across the Jordan Valley and nearby lake country.', descAr: 'إطلالة واسعة على وادي الأردن والمناطق المحيطة ببحيرة طبريا.' }
+    ]
+  },
+  {
+    id: 'salt',
+    lat: 32.0392,
+    lng: 35.7272,
+    tag: 'CULTURE',
+    tagAr: 'تراث',
+    c: 'history',
+    n: 'As-Salt',
+    a: 'السلط',
+    r: 'Balqa',
+    ra: 'البلقاء',
+    sub: 'Historic hillside streets and yellow-stone houses',
+    subAr: 'شوارع جبلية وبيوت تراثية من الحجر الأصفر',
+    o: 2.2,
+    d: 0.5,
+    cost: 12,
+    s: 'A walk through Jordanian hospitality and living heritage',
+    sa: 'جولة بين كرم الضيافة والتراث الأردني الحي',
+    why: 'As-Salt grew as a regional trading town, with distinctive yellow limestone homes and close-knit neighbourhoods. Its historic centre is recognized for its urban heritage and warm local hospitality.',
+    whyAr: 'نمت السلط مدينةً تجارية مهمة، وتشتهر ببيوتها المتلاصقة المبنية بالحجر الأصفر وأحيائها القديمة. يجمع مركزها التاريخي بين العمارة التراثية وكرم الضيافة الأردني.',
+    best: 'Heritage walks • Architecture • Local food',
+    bestAr: 'جولات تراثية • عمارة قديمة • مأكولات محلية',
+    time: 'Half day',
+    timeAr: 'نصف يوم',
+    tip: 'Wear comfortable shoes for the steep lanes and ask locally about guided heritage walks.',
+    tipAr: 'ارتدِ حذاءً مريحاً بسبب الشوارع المنحدرة، واسأل عن الجولات التراثية المحلية.',
+    ticket: 'The old town is open to explore; some museums may charge admission.',
+    ticketAr: 'يمكن التجول في البلدة القديمة؛ وقد تفرض بعض المتاحف رسوم دخول.',
+    hours: 'Outdoor walks are best in daylight; museum hours vary.',
+    hoursAr: 'تُفضّل الجولات الخارجية نهاراً؛ وتختلف ساعات المتاحف.',
+    season: 'Spring and autumn',
+    seasonAr: 'الربيع والخريف',
+    food: 'Traditional Jordanian dishes, sweets and local olive oil',
+    foodAr: 'أطباق أردنية تقليدية وحلويات وزيت زيتون محلي',
+    highlights: [
+      { en: 'Historic Old Town', ar: 'وسط المدينة التاريخي', descEn: 'Explore the layered lanes and traditional limestone architecture.', descAr: 'اكتشف الأزقة المتدرجة والعمارة التقليدية من الحجر الجيري.' },
+      { en: 'Abu Jaber House', ar: 'بيت أبو جابر', descEn: 'A landmark historic home that tells the story of As-Salt merchants.', descAr: 'بيت تراثي بارز يروي جانباً من تاريخ تجار السلط.' },
+      { en: 'Hammam Street', ar: 'شارع الحمام', descEn: 'A lively historic street lined with shops and everyday local life.', descAr: 'شارع تاريخي نابض بالمحلات وتفاصيل الحياة اليومية.' }
+    ]
+  },
+  {
+    id: 'amman',
+    lat: 31.9539,
+    lng: 35.9106,
+    tag: 'CITY',
+    tagAr: 'مدينة',
+    c: 'history',
+    n: 'Amman',
+    a: 'عمّان',
+    r: 'Central Jordan',
+    ra: 'وسط الأردن',
+    sub: 'Citadel views, lively streets and local cafés',
+    subAr: 'إطلالات القلعة وشوارع نابضة ومقاهٍ محلية',
+    o: 0.4,
+    d: 0.5,
+    cost: 25,
+    s: 'A welcoming capital with layers of history and everyday life',
+    sa: 'عاصمة دافئة تجمع طبقات التاريخ والحياة اليومية',
+    why: 'Explore Jordan’s capital through the Citadel and Roman Theatre, then head down to the old markets, neighbourhood cafés and lively Rainbow Street.',
+    whyAr: 'اكتشف عاصمة الأردن من جبل القلعة والمدرج الروماني، ثم تجوّل في الأسواق القديمة ومقاهي الأحياء وشارع الرينبو النابض بالحياة.',
+    best: 'City walks • History • Local food',
+    bestAr: 'جولات المدينة • التاريخ • المأكولات المحلية',
+    time: 'Half to full day',
+    timeAr: 'نصف يوم إلى يوم كامل',
+    tip: 'Plan the Citadel and Roman Theatre together, then leave time to explore the downtown streets on foot.',
+    tipAr: 'اجمع زيارة جبل القلعة والمدرج الروماني في جولة واحدة، واترك وقتاً لاستكشاف شوارع وسط البلد سيراً.',
+    ticket: 'Admission fees apply at some historic sites.',
+    ticketAr: 'تُفرض رسوم دخول على بعض المواقع الأثرية.',
+    hours: 'Site and museum hours vary; check before visiting.',
+    hoursAr: 'تختلف ساعات المواقع والمتاحف؛ تحقق منها قبل الزيارة.',
+    season: 'Spring and autumn',
+    seasonAr: 'الربيع والخريف',
+    food: 'Falafel, hummus, kunafa and traditional Jordanian dishes',
+    foodAr: 'الفلافل والحمص والكنافة والأطباق الأردنية التقليدية',
+    highlights: [
+      { en: 'Amman Citadel', ar: 'جبل القلعة', descEn: 'Ancient remains and broad views across the city.', descAr: 'آثار قديمة وإطلالات واسعة على المدينة.' },
+      { en: 'Roman Theatre', ar: 'المدرج الروماني', descEn: 'A landmark Roman theatre set in the heart of downtown.', descAr: 'مدرج روماني بارز في قلب وسط البلد.' },
+      { en: 'Rainbow Street', ar: 'شارع الرينبو', descEn: 'A popular street for cafés, local shops and an evening walk.', descAr: 'شارع معروف بالمقاهي والمتاجر المحلية والتنزه مساءً.' }
+    ]
   }
 ];
 
@@ -483,6 +785,10 @@ const I18N = {
     searchPlaceholder: 'Search "sunset", "north", "food", "Petra"…',
     moreHighlights: 'More highlights',
     moreHighlightsSub: 'Fresh additions curated from your supplied references',
+    foodTitle: 'Jordanian food',
+    foodIntro: 'A taste of Jordan, one beloved dish at a time.',
+    ingredients: 'Ingredients',
+    backToFood: 'Back to Jordanian food',
     route: 'Your route',
     save0: "Start saving places. We'll keep the route tidy.",
     savedPlaces: 'Saved places',
@@ -506,6 +812,39 @@ const I18N = {
     with: 'Who are you traveling with?',
     likes: 'What sounds most like you?',
     solo: ['Solo', 'Couple', 'Friends', 'Family'],
+    guideOptions: 'Tour guide',
+    guideOptionsSub: 'Choose independent travel or add a guide to your itinerary.',
+    selfGuided: 'No guide',
+    groupTour: 'Join a group tour',
+    privateGuide: 'Private guide',
+    groupTourPrice: '25 JOD per traveler',
+    privateGuidePrice: '60 JOD per trip',
+    travelerCount: 'Number of travelers',
+    travelerUnit: 'travelers',
+    travelDate: 'Tour date',
+    demoPaymentNotice: 'Demo checkout only. No real payment is processed. Do not enter real card details.',
+    demoCardLabel: 'Test card number',
+    demoCardPlaceholder: '4242 4242 4242 4242',
+    demoPaymentSuccess: 'Demo booking confirmed. No money was charged.',
+    bookingConfirmed: 'Booking confirmed',
+    tourTypeLabel: 'Tour option',
+    paymentError: 'Check the card number, expiry date, and security code.',
+    paymentPersistenceError: 'The demo booking was confirmed, but could not be saved to your account.',
+    guidedBooking: 'Guided tour',
+    noGuide: 'No guide selected',
+    securityCode: 'Test security code',
+    confirmDemoBooking: 'Confirm demo booking',
+    detailsStep: 'Details',
+    paymentStep: 'Payment',
+    confirmedStep: 'Confirmed',
+    totalLabel: 'Total',
+    stayLabel: 'Stay',
+    guestCountLabel: 'Guests',
+    guestUnit: 'guests',
+    experienceLabel: 'Experience',
+    oneNight: '1 night',
+    privateDome: 'Private dome',
+    wadiMealDetails: 'Dinner + breakfast',
     st: ['Basics', 'Interests', 'Pace', 'Ready'],
     pace: 'Pick your pace',
     slow: 'Slow',
@@ -590,6 +929,8 @@ const I18N = {
       adventure: 'Adventure',
       nature: 'Nature',
       history: 'History',
+      coast: 'Coast',
+      desert: 'Desert',
       food: 'Local food',
       hidden: 'Hidden gems',
       slow: 'Slow travel'
@@ -627,6 +968,10 @@ const I18N = {
     searchPlaceholder: 'ابحث عن "غروب"، "الشمال"، "طعام"، "البتراء"…',
     moreHighlights: 'أماكن إضافية مختارة',
     moreHighlightsSub: 'إضافات مميزة تم اختيارها بعناية من معالم الأردن',
+    foodTitle: 'أكلات أردنية',
+    foodIntro: 'تعرّف على نكهات الأردن من خلال أطباقه المحبوبة.',
+    ingredients: 'المكونات',
+    backToFood: 'العودة إلى الأكلات الأردنية',
     route: 'مسارك',
     save0: 'احفظ الأماكن التي تعجبك، وسنرتب لك الطريق.',
     savedPlaces: 'الأماكن المحفوظة',
@@ -650,6 +995,39 @@ const I18N = {
     with: 'مع من تسافر؟',
     likes: 'ما الذي يشبهك؟',
     solo: ['وحيد', 'ثنائي', 'أصدقاء', 'عائلة'],
+    guideOptions: 'المرشد السياحي',
+    guideOptionsSub: 'اختر رحلة مستقلة أو أضف مرشداً إلى برنامجك.',
+    selfGuided: 'بدون مرشد',
+    groupTour: 'الانضمام إلى مجموعة سياحية',
+    privateGuide: 'مرشد سياحي خاص',
+    groupTourPrice: '25 ديناراً للشخص',
+    privateGuidePrice: '60 ديناراً للرحلة',
+    travelerCount: 'عدد المسافرين',
+    travelerUnit: 'مسافرين',
+    travelDate: 'تاريخ الجولة',
+    demoPaymentNotice: 'هذه تجربة دفع تجريبية فقط ولا يتم خصم أي مبلغ. لا تدخل بيانات بطاقة حقيقية.',
+    demoCardLabel: 'رقم بطاقة تجريبي',
+    demoCardPlaceholder: '4242 4242 4242 4242',
+    demoPaymentSuccess: 'تم تأكيد الحجز التجريبي. لم يتم خصم أي مبلغ.',
+    bookingConfirmed: 'تم تأكيد الحجز',
+    tourTypeLabel: 'نوع الجولة',
+    paymentError: 'تحقق من رقم البطاقة وتاريخ الانتهاء ورمز الأمان.',
+    paymentPersistenceError: 'تم تأكيد الحجز التجريبي، لكن تعذر حفظه في حسابك.',
+    guidedBooking: 'جولة مع مرشد سياحي',
+    noGuide: 'لم يتم اختيار مرشد',
+    securityCode: 'رمز أمان تجريبي',
+    confirmDemoBooking: 'تأكيد الحجز التجريبي',
+    detailsStep: 'التفاصيل',
+    paymentStep: 'الدفع',
+    confirmedStep: 'تم التأكيد',
+    totalLabel: 'المجموع',
+    stayLabel: 'الإقامة',
+    guestCountLabel: 'الضيوف',
+    guestUnit: 'ضيوف',
+    experienceLabel: 'التجربة',
+    oneNight: 'ليلة واحدة',
+    privateDome: 'قبة خاصة',
+    wadiMealDetails: 'عشاء وإفطار',
     st: ['الأساسيات', 'الاهتمامات', 'الإيقاع', 'جاهز'],
     pace: 'اختر إيقاعك',
     slow: 'هادئ',
@@ -734,6 +1112,8 @@ const I18N = {
       adventure: 'مغامرة',
       nature: 'طبيعة',
       history: 'تاريخ',
+      coast: 'ساحل',
+      desert: 'صحراء',
       food: 'أكل محلي',
       hidden: 'أماكن مخفية',
       slow: 'رحلة هادئة'
@@ -743,8 +1123,8 @@ const I18N = {
 
 // Global Application State
 const STATE = {
-  lang: localStorage.getItem('dalilLang') || 'en',
-  user: null,
+  lang: getLS('dalilLang') === 'ar' ? 'ar' : 'en',
+  user: getLS('dalil_user'),
   saved: ['petra', 'wadirum'],
   stamps: ['petra', 'wadirum', 'aqaba', 'ajloun', 'jerash', 'amman', 'salt'],
   trips: [
@@ -756,7 +1136,7 @@ const STATE = {
       progress: 70
     }
   ],
-  cat: 'adventure',
+  cat: 'all',
   q: '',
   isMapView: false,
   step: 1,
@@ -767,8 +1147,12 @@ const STATE = {
     mode: 'Rental car',
     who: 1,
     likes: ['adventure', 'nature', 'hidden'],
-    pace: 1
+    pace: 1,
+    tourType: 'none',
+    travelers: 2,
+    tourDate: getDefaultTourDate()
   },
+  checkoutType: 'wadirum',
   bk: {
     date: '2026-10-18',
     guests: 2
@@ -780,6 +1164,12 @@ const t = key => I18N[STATE.lang]?.[key] ?? I18N.en[key] ?? key;
 const getName = place => (STATE.lang === 'ar' ? place.a : place.n);
 const getSub = place => (STATE.lang === 'ar' ? place.sa : place.s);
 const getTag = place => (STATE.lang === 'ar' ? place.tagAr : place.tag);
+const matchesPlaceCategory = (place, category) => category === 'all'
+  || place.c === category
+  || (category === 'coast' && ['aqaba', 'deadsea'].includes(place.id))
+  || (category === 'desert' && ['wadirum', 'wadirum_night'].includes(place.id))
+  || (category === 'hidden' && ['north', 'ummqais'].includes(place.id))
+  || (category === 'slow' && ['deadsea', 'main', 'ummqais'].includes(place.id));
 
 // Toast Notification
 const toast = msg => {
@@ -793,25 +1183,33 @@ const toast = msg => {
 const stateKey = () => (STATE.user?.uid ? STATE.user.uid : 'guest');
 
 async function loadData() {
+  const local = getLS(`dalil_${stateKey()}`);
+  if (local) {
+    if (Array.isArray(local.saved)) {
+      STATE.saved = local.saved.filter(id => PLACES.some(place => place.id === id));
+    }
+    if (Array.isArray(local.stamps)) {
+      STATE.stamps = local.stamps.filter(id => PASSPORT_STAMPS.some(stamp => stamp.id === id));
+    }
+    if (Array.isArray(local.trips)) STATE.trips = local.trips;
+  }
+
   if (fb && STATE.user) {
     try {
       const docRef = fb.fsMod.doc(fb.db, 'users', STATE.user.uid, 'data', 'state');
       const snap = await fb.fsMod.getDoc(docRef);
       if (snap.exists()) {
         const data = snap.data();
-        if (data.saved) STATE.saved = data.saved;
-        if (data.stamps) STATE.stamps = data.stamps;
-        if (data.trips) STATE.trips = data.trips;
+        if (Array.isArray(data.saved)) {
+          STATE.saved = data.saved.filter(id => PLACES.some(place => place.id === id));
+        }
+        if (Array.isArray(data.stamps)) {
+          STATE.stamps = data.stamps.filter(id => PASSPORT_STAMPS.some(stamp => stamp.id === id));
+        }
+        if (Array.isArray(data.trips)) STATE.trips = data.trips;
       }
     } catch (e) {
       console.warn('Firestore load failed, using local backup', e);
-    }
-  } else {
-    const local = getLS(`dalil_${stateKey()}`);
-    if (local) {
-      if (local.saved) STATE.saved = local.saved;
-      if (local.stamps) STATE.stamps = local.stamps;
-      if (local.trips) STATE.trips = local.trips;
     }
   }
 }
@@ -822,7 +1220,7 @@ async function persistData() {
     stamps: STATE.stamps,
     trips: STATE.trips
   };
-  localStorage.setItem(`dalil_${stateKey()}`, JSON.stringify(payload));
+  setLS(`dalil_${stateKey()}`, payload);
   if (fb && STATE.user) {
     try {
       const docRef = fb.fsMod.doc(fb.db, 'users', STATE.user.uid, 'data', 'state');
@@ -847,7 +1245,7 @@ if (fb) {
 
 async function handleEmailAuth(isRegister) {
   const email = $('#em').value.trim();
-  const pass = $('#pw').value.trim();
+  const pass = $('#pw').value;
   const errEl = $('#er');
   
   if (!email || pass.length < 6) {
@@ -864,7 +1262,7 @@ async function handleEmailAuth(isRegister) {
       }
     } else {
       STATE.user = { uid: email, email, displayName: email.split('@')[0] };
-      localStorage.setItem('dalil_user', JSON.stringify(STATE.user));
+      setLS('dalil_user', STATE.user);
       await loadData();
       render();
     }
@@ -878,19 +1276,13 @@ async function handleEmailAuth(isRegister) {
 // Google Sign-In Handler
 async function handleGoogleAuth() {
   try {
-    if (fb) {
-      await fb.authMod.signInWithPopup(fb.auth, fb.googleProvider);
-    } else {
-      STATE.user = {
-        uid: 'google-user-101',
-        email: 'mohammed.traveler@gmail.com',
-        displayName: 'Mohammed K.',
-        photoURL: 'https://lh3.googleusercontent.com/a/default-user'
-      };
-      localStorage.setItem('dalil_user', JSON.stringify(STATE.user));
-      await loadData();
-      render();
+    if (!fb) {
+      $('#er').textContent = STATE.lang === 'ar'
+        ? 'تسجيل الدخول عبر Google غير مهيأ. أضف إعدادات Firebase أولاً.'
+        : 'Google sign-in is unavailable until Firebase is configured.';
+      return;
     }
+    await fb.authMod.signInWithPopup(fb.auth, fb.googleProvider);
     $('#dlg').close();
     toast(STATE.lang === 'ar' ? 'مرحباً بك! تم تسجيل الدخول عبر Google' : 'Welcome! Signed in with Google');
   } catch (err) {
@@ -910,7 +1302,7 @@ $('#auth').addEventListener('click', async () => {
     if (fb) {
       await fb.authMod.signOut(fb.auth);
     } else {
-      localStorage.removeItem('dalil_user');
+      removeLS('dalil_user');
       STATE.user = null;
       await loadData();
       render();
@@ -930,7 +1322,7 @@ $('#auth').addEventListener('click', async () => {
 
 $('#lang').addEventListener('click', () => {
   STATE.lang = STATE.lang === 'en' ? 'ar' : 'en';
-  localStorage.setItem('dalilLang', STATE.lang);
+  setLS('dalilLang', STATE.lang);
   render();
 });
 
@@ -940,32 +1332,41 @@ $('#searchNavBtn').addEventListener('click', () => {
 
 // Trip Algorithm Builder
 function generateTripPlan() {
-  const { days, likes } = STATE.pref;
-  const filtered = PLACES.map(p => {
-    let score = (likes.includes(p.c) ? 4 : 0) + (p.id === 'petra' || p.id === 'wadirum' ? 3 : 0);
-    return { place: p, score: score + Math.random() };
-  }).sort((a, b) => b.score - a.score);
+  const days = Math.min(7, Math.max(2, Math.floor(Number(STATE.pref.days) || 2)));
+  const likes = Array.isArray(STATE.pref.likes) ? STATE.pref.likes : [];
+  const pace = Math.min(2, Math.max(0, Number(STATE.pref.pace) || 0));
+  const startsInAqaba = STATE.pref.from === 'Aqaba';
+  const candidates = PLACES.filter(place =>
+    !['wadirum_night', 'jerash_colonnade'].includes(place.id)
+    && !(startsInAqaba && place.id === 'aqaba')
+  );
+  const filtered = candidates.map(place => ({
+    place,
+    score: (likes.includes(place.c) ? 4 : 0) + (['petra', 'wadirum'].includes(place.id) ? 3 : 0)
+  })).sort((a, b) => b.score - a.score || a.place.o - b.place.o);
 
   const selected = [];
   let currentDays = 0;
+  const maxStops = Math.min(candidates.length, days + pace);
+  const maxVisitDays = days + pace * 0.5;
   for (const item of filtered) {
-    if (currentDays + item.place.d <= days + 0.5 && selected.length < days + 2) {
+    if (currentDays + item.place.d <= maxVisitDays && selected.length < maxStops) {
       selected.push(item.place);
       currentDays += item.place.d;
     }
   }
 
+  selected.sort((a, b) => (a.o - b.o) * (startsInAqaba ? -1 : 1));
   selected.sort((a, b) => a.o - b.o);
 
-  const daysPlan = [];
-  for (let d = 0; d < days; d++) {
-    const dayStops = selected.filter((_, idx) => idx % days === d);
-    if (!dayStops.length) dayStops.push(selected[0] || PLACES[0]);
-    daysPlan.push(dayStops);
-  }
+  const daysPlan = Array.from({ length: days }, () => []);
+  selected.forEach((place, index) => {
+    const dayIndex = Math.min(days - 1, Math.floor(index * days / selected.length));
+    daysPlan[dayIndex].push(place);
+  });
 
   const totalCost = selected.reduce((sum, p) => sum + p.cost, 0) + days * 30;
-  const driveHours = Math.round(((selected.at(-1)?.o || 6) - (selected[0]?.o || 1)) * 1.5 + days * 1.2);
+  const driveHours = Math.max(1, Math.round(Math.abs((selected.at(-1)?.o || 6) - (selected[0]?.o || 1)) * 1.5 + days * 1.2));
 
   return {
     plan: daysPlan,
@@ -979,10 +1380,10 @@ function generateTripPlan() {
 const renderCard = place => {
   const isSaved = STATE.saved.includes(place.id);
   return `
-    <div class="card" onclick="location.hash='#/place/${place.id}'">
-      <div class="card-img-wrap" style="background-image: url('assets/img/${place.id}.jpg')">
+    <article class="card" onclick="location.hash='#/place/${place.id}'">
+      <div class="card-img-wrap" style="${getPlaceImageStyle(place)}">
         <span class="badge">${getTag(place)}</span>
-        <button type="button" class="card-heart-btn ${isSaved ? 'on' : ''}" data-save="${place.id}" aria-label="Favorite">
+        <button type="button" class="card-heart-btn ${isSaved ? 'on' : ''}" data-save="${place.id}" aria-label="${STATE.lang === 'ar' ? 'حفظ المكان' : 'Save place'}" aria-pressed="${isSaved}">
           ${isSaved ? '♥' : '♡'}
         </button>
       </div>
@@ -990,9 +1391,19 @@ const renderCard = place => {
         <h4 class="card-title">${getName(place)}</h4>
         <p class="card-sub">${getSub(place)}</p>
       </div>
-    </div>
+    </article>
   `;
 };
+
+const renderFoodCard = dish => `
+  <a class="food-card" href="#/food/${dish.id}">
+    <img src="${dish.image}" alt="${getFoodName(dish)}" loading="lazy">
+    <div class="food-card-body">
+      <h2>${getFoodName(dish)}</h2>
+      <span>${STATE.lang === 'ar' ? 'اعرف المزيد' : 'Discover more'}</span>
+    </div>
+  </a>
+`;
 
 // Route Map Vector Canvas
 const renderRouteMap = () => {
@@ -1020,9 +1431,14 @@ const renderRouteMap = () => {
 
 // Leaflet Interactive Real Map Initializer
 function initInteractiveMap(containerId, placesToRender, drawPolyline = false) {
-  if (typeof L === 'undefined') return;
   const container = document.getElementById(containerId);
   if (!container) return;
+  if (typeof L === 'undefined') {
+    container.textContent = STATE.lang === 'ar'
+      ? 'تعذر تحميل الخريطة. تحقق من اتصال الإنترنت ثم أعد المحاولة.'
+      : 'The map could not load. Check your internet connection and try again.';
+    return;
+  }
 
   // Initialize Map centered on Jordan
   const map = L.map(containerId, { scrollWheelZoom: false }).setView([31.2, 35.8], 7.5);
@@ -1092,7 +1508,7 @@ const renderChips = (categories, activeCat, isMulti = false) => `
 const VIEWS = {
   // 1. Home Page (Page 2 & 3)
   '': () => `
-    <div class="hero" style="background-image: url('assets/img/petra.jpg')">
+    <div class="hero" style="${getPlaceImageStyle(PLACES.find(place => place.id === 'petra'))}">
       <div class="hero-overlay"></div>
       <div class="hero-content">
         <span class="badge badge-hero">${t('made')}</span>
@@ -1130,10 +1546,12 @@ const VIEWS = {
       <h2>${t('choose')}</h2>
       <p class="sub">${t('feel')}</p>
       
-      ${renderChips(['adventure', 'nature', 'history', 'food', 'hidden', 'slow'], STATE.cat)}
+      ${renderChips(['all', 'adventure', 'nature', 'history', 'food', 'hidden', 'slow'], STATE.cat)}
       
-      <div class="grid">
-        ${PLACES.slice(0, 4).map(renderCard).join('')}
+      <div class="${STATE.cat === 'food' ? 'food-grid' : 'grid'}">
+        ${STATE.cat === 'food'
+          ? FOOD_DISHES.map(renderFoodCard).join('')
+          : PLACES.filter(place => matchesPlaceCategory(place, STATE.cat)).slice(0, 4).map(renderCard).join('')}
       </div>
 
       <div class="cta-banner">
@@ -1152,41 +1570,51 @@ const VIEWS = {
 
   // 2. Discover Jordan with Interactive Real Map (Page 4 & 5)
   discover: () => {
-    const placesToDisplay = [PLACES[4], PLACES[0], PLACES[1], PLACES[2], PLACES[3], PLACES[5]]
-      .filter(p => (STATE.cat === 'all' || p.c === STATE.cat || (STATE.cat === 'coast' && p.id === 'aqaba') || (STATE.cat === 'desert' && p.id === 'wadirum')) && (!STATE.q || (p.n + p.a + p.r + (p.why||'')).toLowerCase().includes(STATE.q.toLowerCase())));
+    const placesToDisplay = PLACES.filter(place => {
+      const searchText = [place.n, place.a, place.r, place.ra, place.sub, place.subAr, place.why, place.whyAr].join(' ').toLowerCase();
+      return matchesPlaceCategory(place, STATE.cat) && (!STATE.q || searchText.includes(STATE.q.trim().toLowerCase()));
+    });
 
-    setTimeout(() => {
-      if (STATE.isMapView) {
-        initInteractiveMap('discoverFullMap', PLACES);
-      } else {
-        initInteractiveMap('discoverRouteMap', STATE.saved.map(id => PLACES.find(p => p.id === id)).filter(Boolean), true);
-      }
-    }, 50);
+    if (STATE.cat !== 'food') {
+      setTimeout(() => {
+        if (STATE.isMapView) {
+          initInteractiveMap('discoverFullMap', placesToDisplay);
+        } else {
+          initInteractiveMap('discoverRouteMap', STATE.saved.map(id => PLACES.find(p => p.id === id)).filter(Boolean), true);
+        }
+      }, 50);
+    }
 
     return `
       <div class="wrap">
-        <h1>${t('disc')}</h1>
-        <p class="sub">${t('discSub')}</p>
-        
-        <div class="row" style="margin: 20px 0 10px; gap: 12px; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 260px; position: relative;">
-            <input type="text" id="sq" class="form-input" value="${STATE.q}" placeholder="${t('searchPlaceholder')}">
+        <h1>${STATE.cat === 'food' ? t('foodTitle') : t('disc')}</h1>
+        <p class="sub">${STATE.cat === 'food' ? t('foodIntro') : t('discSub')}</p>
+
+        ${STATE.cat === 'food' ? '' : `
+          <div class="row" style="margin: 20px 0 10px; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 260px; position: relative;">
+              <input type="search" id="sq" class="form-input" value="${escapeHTML(STATE.q)}" placeholder="${t('searchPlaceholder')}" autocomplete="off">
+            </div>
+            <button type="button" class="pill ${STATE.isMapView ? 'pill-dark' : ''}" id="toggleMapBtn">
+              ${STATE.isMapView ? t('listView') : t('mapView')}
+            </button>
+            <button type="button" class="pill pill-dark" onclick="location.hash='#/trip'">${t('buildRoute')}</button>
           </div>
-          <button type="button" class="pill ${STATE.isMapView ? 'pill-dark' : ''}" id="toggleMapBtn">
-            ${STATE.isMapView ? t('listView') : t('mapView')}
-          </button>
-          <button type="button" class="pill pill-dark" onclick="location.hash='#/trip'">${t('buildRoute')}</button>
-        </div>
+        `}
 
         ${renderChips(['all', 'nature', 'history', 'coast', 'desert', 'hidden', 'food'], STATE.cat)}
 
-        ${STATE.isMapView ? `
+        ${STATE.cat === 'food' ? `
+          <div class="food-grid">
+            ${FOOD_DISHES.map(renderFoodCard).join('')}
+          </div>
+        ` : STATE.isMapView ? `
           <div class="box" style="padding: 16px;">
             <div id="discoverFullMap" class="real-map-box" style="height: 480px;"></div>
           </div>
         ` : `
           <div class="two-col">
-            <div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="grid">
               ${placesToDisplay.map(renderCard).join('')}
             </div>
 
@@ -1205,7 +1633,7 @@ const VIEWS = {
                       <span class="saved-list-num">0${index + 1}</span>
                       <div style="flex: 1;">
                         <h5 style="font-size: 14px; font-weight: 700;">${getName(place)}</h5>
-                        <span style="font-size: 12px; color: var(--mut);">${getTag(place)} • ${place.d >= 1 ? '1 day' : 'Overnight'}</span>
+                        <span style="font-size: 12px; color: var(--mut);">${getTag(place)} • ${STATE.lang === 'ar' ? place.timeAr : place.time}</span>
                       </div>
                       <a href="https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}" target="_blank" rel="noopener" style="font-size: 11px; color: #1a73e8; font-weight: 600;">Maps ↗</a>
                     </div>
@@ -1216,15 +1644,32 @@ const VIEWS = {
           </div>
         `}
 
-        <!-- More Highlights Section -->
-        <div style="margin-top: 56px;">
-          <h3>${t('moreHighlights')}</h3>
-          <p class="sub">${t('moreHighlightsSub')}</p>
-          <div class="grid" style="margin-top: 20px;">
-            ${[PLACES[6], PLACES[7], PLACES[8], PLACES[9]].map(renderCard).join('')}
-          </div>
-        </div>
       </div>
+    `;
+  },
+
+  food: id => {
+    const dish = FOOD_DISHES.find(item => item.id === id);
+    if (!dish) {
+      return `
+        <div class="wrap food-detail">
+          <a class="food-back" href="#/discover" data-food-back>${t('backToFood')}</a>
+          <h1>${t('foodTitle')}</h1>
+        </div>
+      `;
+    }
+
+    return `
+      <article class="wrap food-detail">
+        <a class="food-back" href="#/discover" data-food-back>${t('backToFood')}</a>
+        <img class="food-detail-image" src="${dish.image}" alt="${getFoodName(dish)}">
+        <h1>${getFoodName(dish)}</h1>
+        <p class="food-description">${dish.description[STATE.lang]}</p>
+        <h2>${t('ingredients')}</h2>
+        <ul class="food-ingredients">
+          ${dish.ingredients[STATE.lang].map(ingredient => `<li>${ingredient}</li>`).join('')}
+        </ul>
+      </article>
     `;
   },
 
@@ -1239,7 +1684,7 @@ const VIEWS = {
     }, 50);
 
     return `
-      <div class="hero" style="min-height: 420px; background-image: url('assets/img/${place.id}.jpg')">
+      <div class="hero" style="min-height: 420px; ${getPlaceImageStyle(place)}">
         <div class="hero-overlay"></div>
         <div class="hero-content">
           <span class="badge badge-hero">${getTag(place)}</span>
@@ -1265,6 +1710,17 @@ const VIEWS = {
         <div class="box">
           <h3>${t('why')}</h3>
           <p class="sub" style="font-size: 15px; margin: 12px 0 20px; line-height: 1.6;">${STATE.lang === 'ar' ? place.whyAr : place.why}</p>
+
+          ${(PLACE_GALLERIES[place.id] || []).length ? `
+            <div class="place-photo-grid">
+              ${PLACE_GALLERIES[place.id].map(photo => `
+                <figure class="place-photo">
+                  <img src="${photo.src}" alt="${STATE.lang === 'ar' ? photo.ar : photo.en}" loading="lazy">
+                  <figcaption>${STATE.lang === 'ar' ? photo.ar : photo.en}</figcaption>
+                </figure>
+              `).join('')}
+            </div>
+          ` : ''}
           
           <!-- Key Specs Overview -->
           <div class="specs-grid">
@@ -1391,16 +1847,16 @@ const VIEWS = {
                 <div class="form-group">
                   <label class="field-label">${t('bud')}</label>
                   <select class="form-select" data-p="budget">
-                    <option ${p.budget === '60–120' ? 'selected' : ''}>60–120 JOD</option>
-                    <option ${p.budget === '120–220' ? 'selected' : ''}>120–220 JOD</option>
-                    <option ${p.budget === '220+' ? 'selected' : ''}>220+ JOD</option>
+                    <option value="60–120" ${p.budget === '60–120' ? 'selected' : ''}>60–120 JOD</option>
+                    <option value="120–220" ${p.budget === '120–220' ? 'selected' : ''}>120–220 JOD</option>
+                    <option value="220+" ${p.budget === '220+' ? 'selected' : ''}>220+ JOD</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label class="field-label">${t('from')}</label>
                   <select class="form-select" data-p="from">
-                    <option ${p.from === 'Amman' ? 'selected' : ''}>${STATE.lang === 'ar' ? 'عمان' : 'Amman'}</option>
-                    <option ${p.from === 'Aqaba' ? 'selected' : ''}>${STATE.lang === 'ar' ? 'العقبة' : 'Aqaba'}</option>
+                    <option value="Amman" ${p.from === 'Amman' ? 'selected' : ''}>${STATE.lang === 'ar' ? 'عمان' : 'Amman'}</option>
+                    <option value="Aqaba" ${p.from === 'Aqaba' ? 'selected' : ''}>${STATE.lang === 'ar' ? 'العقبة' : 'Aqaba'}</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -1422,6 +1878,29 @@ const VIEWS = {
                   `).join('')}
                 </div>
               </div>
+
+              <section class="tour-options" aria-label="${t('guideOptions')}">
+                <h3>${t('guideOptions')}</h3>
+                <p class="sub">${t('guideOptionsSub')}</p>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="field-label" for="tourType">${t('tourTypeLabel')}</label>
+                    <select class="form-select" id="tourType" data-p="tourType">
+                      <option value="none" ${p.tourType === 'none' ? 'selected' : ''}>${t('selfGuided')}</option>
+                      <option value="group" ${p.tourType === 'group' ? 'selected' : ''}>${t('groupTour')} — ${t('groupTourPrice')}</option>
+                      <option value="private" ${p.tourType === 'private' ? 'selected' : ''}>${t('privateGuide')} — ${t('privateGuidePrice')}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="field-label" for="tourTravelers">${t('travelerCount')}</label>
+                    <input class="form-input" id="tourTravelers" type="number" min="1" max="20" step="1" value="${p.travelers}" data-p="travelers">
+                  </div>
+                  <div class="form-group">
+                    <label class="field-label" for="tourDate">${t('travelDate')}</label>
+                    <input class="form-input" id="tourDate" type="date" min="${getTodayDate()}" value="${p.tourDate}" data-p="tourDate">
+                  </div>
+                </div>
+              </section>
 
               <div class="form-group">
                 <label class="field-label">${t('likes')}</label>
@@ -1448,6 +1927,8 @@ const VIEWS = {
                 <div class="stat-box"><small>Days</small><b>${p.days}</b></div>
                 <div class="stat-box"><small>Travelers</small><b>${t('solo')[p.who]}</b></div>
                 <div class="stat-box"><small>Budget</small><b>${p.budget} JOD</b></div>
+                <div class="stat-box"><small>${t('guideOptions')}</small><b>${p.tourType === 'group' ? t('groupTour') : p.tourType === 'private' ? t('privateGuide') : t('selfGuided')}</b></div>
+                ${p.tourType !== 'none' ? `<div class="stat-box"><small>${t('bookingSummary')}</small><b>${getGuidedTourTotal(p.tourType, Number(p.travelers))} JOD</b></div>` : ''}
               </div>
             `}
 
@@ -1468,7 +1949,7 @@ const VIEWS = {
               ${p.days} ${STATE.lang === 'ar' ? 'أيام' : 'days'} • ${t('solo')[p.who]} • ${p.budget} JOD
             </p>
             
-            <div style="height: 140px; border-radius: 12px; background: url('assets/img/wadirum.jpg') center/cover; margin-bottom: 16px;"></div>
+            <div class="trip-preview-image" style="${getPlaceImageStyle(PLACES.find(place => place.id === 'wadirum'))}"></div>
 
             <span class="badge badge-clay" style="font-size: 11px; margin-bottom: 10px;">
               ${p.likes.map(l => t('cats')[l] || l).join(' + ')}
@@ -1498,13 +1979,6 @@ const VIEWS = {
       initInteractiveMap('tripResultRealMap', allStops, true);
     }, 50);
 
-    const dayTitles = [
-      { en: 'Petra by late morning', ar: 'الوصول للبتراء قبل الظهر', subEn: 'Walk the Siq, Treasury + sunset viewpoint', subAr: 'استكشاف السيق والخزنة ومطل الغروب', stay: 'Stay in Wadi Musa' },
-      { en: 'Slow morning, then desert', ar: 'صباح هادئ، ثم الانطلاق للصحراء', subEn: 'Jabal Umm Fruth • sunset • camp dinner', subAr: 'جبل أم فروث • الغروب • عشاء بدوي', stay: 'Sleep under the stars' },
-      { en: 'Drive south to the sea', ar: 'النزول جنوباً إلى البحر', subEn: 'Snorkel, market walk, easy evening', subAr: 'سباحة وغوص، سوق شعبي وأمسية هادئة', stay: 'Waterfront stay' },
-      { en: 'Scenic return route', ar: 'طريق العودة البانورامي', subEn: 'Dead Sea stop • seaside lunch', subAr: 'محطة في البحر الميت • غداء على الشاطئ', stay: 'Back in Amman' }
-    ];
-
     return `
       <div class="wrap">
         <div class="row" style="justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap;">
@@ -1527,17 +2001,15 @@ const VIEWS = {
         <div class="two-col">
           <div>
             ${planResult.plan.map((dayStops, idx) => {
-              const info = dayTitles[idx % dayTitles.length];
               const firstPlace = dayStops[0];
               return `
                 <div class="day-card">
-                  <div class="day-thumb" style="background-image: url('assets/img/${firstPlace.id}.jpg')"></div>
+                  <div class="day-thumb" style="${getPlaceImageStyle(firstPlace)}"></div>
                   <div class="day-info">
                     <span class="day-tag">DAY ${idx + 1} • ${STATE.pref.from.toUpperCase()} → ${getName(firstPlace).toUpperCase()}</span>
-                    <h4 class="day-title">${STATE.lang === 'ar' ? info.ar : info.en}</h4>
-                    <p class="sub" style="font-size: 13px; margin: 0;">${STATE.lang === 'ar' ? info.subAr : info.subEn}</p>
+                    <h4 class="day-title">${dayStops.map(getName).join(' • ')}</h4>
+                    <p class="sub" style="font-size: 13px; margin: 0;">${dayStops.map(place => STATE.lang === 'ar' ? place.ra : place.r).join(' • ')}</p>
                     <div class="row" style="margin-top: 8px; justify-content: space-between;">
-                      <span class="badge" style="font-size: 10px; background: var(--sand-light);">${info.stay}</span>
                       <a href="https://www.google.com/maps/search/?api=1&query=${firstPlace.lat},${firstPlace.lng}" target="_blank" rel="noopener" style="font-size: 11px; color: #1a73e8; font-weight: 600;">Google Maps ↗</a>
                     </div>
                   </div>
@@ -1549,14 +2021,14 @@ const VIEWS = {
           <div>
             <div class="box dk">
               <span class="eyebrow" style="color: var(--sand);">ROUTE OVERVIEW</span>
-              <h3>South Jordan loop</h3>
+              <h3>${t('route')}</h3>
               <div id="tripResultRealMap" class="real-map-compact" style="border-color: var(--border-dark);"></div>
             </div>
 
             <div class="stats-grid">
               <div class="stat-box">
                 <small>${t('driving')}</small>
-                <b>${planResult.drive}h 20m</b>
+                <b>${planResult.drive}h</b>
                 <span>Across ${STATE.pref.days} days</span>
               </div>
               <div class="stat-box">
@@ -1588,15 +2060,11 @@ const VIEWS = {
   // 6. Experience Detail - Wadi Rum Night (Page 10)
   experience: () => `
     <div class="wrap" style="padding-top: 16px;">
-      <div class="exp-gallery-hero">
-        <div class="gallery-main" style="background-image: linear-gradient(180deg, rgba(19,25,34,0.2) 0%, rgba(19,25,34,0.85) 100%), url('assets/img/wadirum.jpg');">
+      <div class="exp-gallery-hero exp-gallery-single">
+        <div class="gallery-main" style="background-image: linear-gradient(180deg, rgba(19,25,34,0.2) 0%, rgba(19,25,34,0.85) 100%), url('${getPlaceImage(PLACES.find(place => place.id === 'wadirum'))}');">
           <span class="badge badge-hero">LOCAL STAY</span>
           <h1 style="margin-top: 120px;">${t('night')}</h1>
           <p style="color: #cbd5e1; font-size: 15px;">${t('nightSub')}</p>
-        </div>
-        <div class="gallery-side">
-          <div class="gallery-thumb" style="background-image: url('assets/img/wadirum_night.jpg');"></div>
-          <div class="gallery-thumb" style="background-image: url('assets/img/petra.jpg');"></div>
         </div>
       </div>
 
@@ -1662,89 +2130,95 @@ const VIEWS = {
   `,
 
   // 7. Checkout (Page 11)
-  checkout: () => `
-    <div class="wrap">
-      <h1>${t('payT')}</h1>
-      <p class="sub">${t('bookingSub')}</p>
-      
-      <div class="stepper" style="margin: 20px 0 32px;">
-        <div class="step-item completed"><span class="step-num">✓</span><span>1. Details</span></div>
-        <div class="step-item active"><span class="step-num">2</span><span>2. Payment</span></div>
-        <div class="step-item"><span class="step-num">3</span><span>3. Confirmed</span></div>
-      </div>
+  checkout: () => {
+    const isGuided = STATE.checkoutType === 'guided';
+    const total = isGuided
+      ? getGuidedTourTotal(STATE.pref.tourType, Number(STATE.pref.travelers))
+      : 95;
+    const bookingName = isGuided
+      ? STATE.pref.tourType === 'group' ? t('groupTour') : t('privateGuide')
+      : t('night');
+    return `
+      <div class="wrap">
+        <h1>${t('payT')}</h1>
+        <p class="sub">${isGuided
+          ? `${t('guidedBooking')} • ${bookingName} • ${STATE.pref.travelers} ${t('travelerUnit')} • ${STATE.pref.tourDate}`
+          : t('bookingSub')}</p>
 
-      <div class="two-col">
-        <div class="box">
-          <h3>${t('paymentTitle')}</h3>
-          <p class="sub" style="margin-bottom: 24px;">${t('paymentSub')}</p>
-          
-          <div class="form-group">
-            <label class="field-label">${t('cardN')}</label>
-            <input type="text" class="form-input" id="cn" value="${STATE.user ? (STATE.user.displayName || STATE.user.email.split('@')[0]) : 'Mohammed K.'}">
-          </div>
-
-          <div class="form-group">
-            <label class="field-label">${t('cardNo')}</label>
-            <input type="text" class="form-input" id="cc" value="•••• •••• •••• 5432" maxlength="19">
-          </div>
-
-          <div class="form-grid-2">
-            <div class="form-group">
-              <label class="field-label">${t('exp2')}</label>
-              <input type="text" class="form-input" id="ce" value="12 / 29" placeholder="MM / YY">
-            </div>
-            <div class="form-group">
-              <label class="field-label">CVV</label>
-              <input type="password" class="form-input" value="•••" maxlength="4">
-            </div>
-          </div>
-
-          <label class="row" style="margin: 16px 0 24px; font-size: 13px; cursor: pointer;">
-            <input type="checkbox" checked style="accent-color: var(--clay);">
-            <span>${t('saveCard')}</span>
-          </label>
-
-          <button type="button" class="pill pill-clay" style="width: 100%; padding: 14px;" id="pay">
-            ${t('pay')} 95 JOD
-          </button>
-          
-          <p style="font-size: 11px; color: var(--mut); margin-top: 14px; text-align: center;">${t('payTerms')}</p>
+        <div class="stepper" style="margin: 20px 0 32px;">
+          <div class="step-item completed"><span class="step-num">✓</span><span>1. ${t('detailsStep')}</span></div>
+          <div class="step-item active"><span class="step-num">2</span><span>2. ${t('paymentStep')}</span></div>
+          <div class="step-item"><span class="step-num">3</span><span>3. ${t('confirmedStep')}</span></div>
         </div>
 
-        <div class="box dk">
-          <span class="eyebrow" style="color: var(--sand);">${t('bookingSummary')}</span>
-          <div style="height: 120px; border-radius: 12px; background: url('assets/img/wadirum.jpg') center/cover; margin: 12px 0;"></div>
-          
-          <h3 style="margin: 8px 0 2px;">${t('night')}</h3>
-          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 18px;">Private dome • ${STATE.bk.guests} guests</p>
-          
-          <div class="specs-grid" style="border-color: var(--border-dark); grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
-            <div class="spec-item">
-              <span class="spec-label" style="color: #94a3b8;">Date</span>
-              <span class="spec-val" style="color: #fff;">${STATE.bk.date}</span>
+        <div class="two-col">
+          <div class="box">
+            <h3>${t('paymentTitle')}</h3>
+            <p class="demo-payment-notice" id="demoPaymentNotice" role="note">${t('demoPaymentNotice')}</p>
+            <p class="sub" style="margin-bottom: 24px;">${t('demoCardLabel')}: ${t('demoCardPlaceholder')}</p>
+
+            <div class="form-group">
+              <label class="field-label" for="cc">${t('demoCardLabel')}</label>
+              <input type="text" class="form-input" id="cc" value="4242424242424242" inputmode="numeric" autocomplete="off" maxlength="19" aria-describedby="demoPaymentNotice">
             </div>
-            <div class="spec-item">
-              <span class="spec-label" style="color: #94a3b8;">Stay</span>
-              <span class="spec-val" style="color: #fff;">1 night</span>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="field-label" for="ce">${t('exp2')}</label>
+                <input type="text" class="form-input" id="ce" value="12/30" placeholder="MM/YY" autocomplete="off" maxlength="5">
+              </div>
+              <div class="form-group">
+                <label class="field-label" for="cv">${t('securityCode')}</label>
+                <input type="password" class="form-input" id="cv" value="123" inputmode="numeric" autocomplete="off" maxlength="4">
+              </div>
             </div>
-            <div class="spec-item">
-              <span class="spec-label" style="color: #94a3b8;">Guests</span>
-              <span class="spec-val" style="color: #fff;">${STATE.bk.guests}</span>
-            </div>
-            <div class="spec-item">
-              <span class="spec-label" style="color: #94a3b8;">Experience</span>
-              <span class="spec-val" style="color: #fff;">Dinner + breakfast</span>
-            </div>
+
+            <button type="button" class="pill pill-clay" style="width: 100%; padding: 14px;" id="pay">
+              ${t('confirmDemoBooking')} — ${total} JOD
+            </button>
+
+            <p style="font-size: 11px; color: var(--mut); margin-top: 14px; text-align: center;">${t('payTerms')}</p>
           </div>
 
-          <div class="row" style="justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--border-dark);">
-            <span style="font-weight: 700;">Total</span>
-            <b style="font-size: 26px; color: var(--sand);">95 JOD</b>
+          <div class="box dk">
+            <span class="eyebrow" style="color: var(--sand);">${t('bookingSummary')}</span>
+            <div class="trip-preview-image trip-preview-image-small" style="${getPlaceImageStyle(PLACES.find(place => place.id === 'wadirum'))}"></div>
+
+            <h3 style="margin: 8px 0 2px;">${isGuided ? t('guidedBooking') : t('night')}</h3>
+            <p style="font-size: 13px; color: #94a3b8; margin-bottom: 18px;">${isGuided
+              ? `${bookingName} • ${STATE.pref.travelers} ${t('travelerUnit')}`
+              : `${t('privateDome')} • ${STATE.bk.guests} ${t('guestUnit')}`}</p>
+
+            <div class="specs-grid" style="border-color: var(--border-dark); grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
+              <div class="spec-item">
+                <span class="spec-label" style="color: #94a3b8;">${isGuided ? t('travelDate') : t('date')}</span>
+                <span class="spec-val" style="color: #fff;">${isGuided ? STATE.pref.tourDate : STATE.bk.date}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label" style="color: #94a3b8;">${isGuided ? t('tourTypeLabel') : t('stayLabel')}</span>
+                <span class="spec-val" style="color: #fff;">${isGuided
+                  ? STATE.pref.tourType === 'group' ? t('groupTourPrice') : t('privateGuidePrice')
+                  : t('oneNight')}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label" style="color: #94a3b8;">${isGuided ? t('travelerCount') : t('guestCountLabel')}</span>
+                <span class="spec-val" style="color: #fff;">${isGuided ? STATE.pref.travelers : STATE.bk.guests}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label" style="color: #94a3b8;">${isGuided ? t('bookingSummary') : t('experienceLabel')}</span>
+                <span class="spec-val" style="color: #fff;">${isGuided ? bookingName : t('wadiMealDetails')}</span>
+              </div>
+            </div>
+
+            <div class="row" style="justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--border-dark);">
+              <span style="font-weight: 700;">${t('totalLabel')}</span>
+              <b style="font-size: 26px; color: var(--sand);">${total} JOD</b>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `,
+    `;
+  },
 
   // 8. User Dashboard (Page 12)
   dashboard: () => renderSidebarView('dashboard', `
@@ -1753,7 +2227,7 @@ const VIEWS = {
     
     <div class="box" style="padding: 24px; margin-bottom: 24px;">
       <div class="two-col" style="align-items: center;">
-        <div style="height: 140px; border-radius: 12px; background: url('assets/img/wadirum.jpg') center/cover;"></div>
+        <div class="trip-preview-image" style="${getPlaceImageStyle(PLACES.find(place => place.id === 'wadirum'))}"></div>
         <div>
           <span class="eyebrow">${t('upcomingTrip')}</span>
           <h3 style="font-size: 22px;">South Jordan • 4 days</h3>
@@ -1932,13 +2406,14 @@ function updateNav() {
 }
 
 // Main Render Function
-function render() {
+function render(preserveScroll = true) {
+  const scrollY = window.scrollY;
   const [route, param] = (location.hash.slice(2) || '').split('/');
   updateNav();
   
   const viewFn = VIEWS[route] || VIEWS[''];
   $('#app').innerHTML = viewFn(param);
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  window.scrollTo({ top: preserveScroll ? scrollY : 0, behavior: 'instant' });
 }
 
 // Global Click Event Handler
@@ -1995,6 +2470,7 @@ document.addEventListener('click', async e => {
   // Trip Wizard: Pace
   if (dataset.pace !== undefined) {
     STATE.pref.pace = Number(dataset.pace);
+    STATE.result = null;
     render();
     return;
   }
@@ -2005,6 +2481,7 @@ document.addEventListener('click', async e => {
     STATE.pref.likes = liked.includes(dataset.like)
       ? liked.filter(x => x !== dataset.like)
       : [...liked, dataset.like];
+    STATE.result = null;
     render();
     return;
   }
@@ -2024,6 +2501,21 @@ document.addEventListener('click', async e => {
   // Wizard Step Next
   if (target.id === 'nx') {
     if (STATE.step === 4) {
+      if (STATE.pref.tourType !== 'none') {
+        const travelerCount = Number(STATE.pref.travelers);
+        if (!Number.isInteger(travelerCount) || travelerCount < 1 || travelerCount > 20) {
+          toast(STATE.lang === 'ar' ? 'أدخل عدد مسافرين بين 1 و20.' : 'Enter between 1 and 20 travelers.');
+          return;
+        }
+        if (!STATE.pref.tourDate || STATE.pref.tourDate < getTodayDate()) {
+          toast(STATE.lang === 'ar' ? 'اختر تاريخاً صالحاً للجولة.' : 'Choose a valid tour date.');
+          return;
+        }
+        STATE.checkoutType = 'guided';
+        STATE.step = 1;
+        location.hash = '#/checkout';
+        return;
+      }
       STATE.step = 1;
       STATE.result = null;
       location.hash = '#/result';
@@ -2066,36 +2558,63 @@ document.addEventListener('click', async e => {
       date: $('#bd')?.value || '2026-10-18',
       guests: Number($('#bg')?.value || 2)
     };
+    STATE.checkoutType = 'wadirum';
     location.hash = '#/checkout';
     return;
   }
 
   // Complete Payment
   if (target.id === 'pay') {
+    const cardNumber = $('#cc')?.value.replace(/\D/g, '') || '';
+    const expiry = $('#ce')?.value.trim() || '';
+    const securityCode = $('#cv')?.value.trim() || '';
+    const expiryMatch = expiry.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+    const expiryDate = expiryMatch
+      ? new Date(2000 + Number(expiryMatch[2]), Number(expiryMatch[1]), 1)
+      : null;
+    const currentMonth = new Date();
+    currentMonth.setDate(1);
+    currentMonth.setHours(0, 0, 0, 0);
+    if (cardNumber !== '4242424242424242'
+      || !expiryDate
+      || expiryDate <= currentMonth
+      || !/^\d{3,4}$/.test(securityCode)) {
+      toast(t('paymentError'));
+      return;
+    }
+
+    const isGuided = STATE.checkoutType === 'guided';
     const booking = {
       uid: STATE.user?.uid || 'guest',
-      place: 'wadirum',
-      date: STATE.bk.date,
-      guests: STATE.bk.guests,
-      total: 95,
-      status: 'confirmed',
+      place: isGuided ? 'guided-tour' : 'wadirum',
+      tourType: isGuided ? STATE.pref.tourType : 'wadi-rum-night',
+      date: isGuided ? STATE.pref.tourDate : STATE.bk.date,
+      guests: isGuided ? Number(STATE.pref.travelers) : STATE.bk.guests,
+      total: isGuided
+        ? getGuidedTourTotal(STATE.pref.tourType, Number(STATE.pref.travelers))
+        : 95,
+      status: 'demo-confirmed',
       timestamp: Date.now()
     };
 
+    let savedToAccount = true;
     if (fb && STATE.user) {
       try {
         await fb.fsMod.addDoc(fb.fsMod.collection(fb.db, 'bookings'), booking);
       } catch (err) {
         console.warn('Booking write error:', err);
+        savedToAccount = false;
       }
     }
     
-    if (!STATE.stamps.includes('wadirum')) {
+    if (!isGuided && !STATE.stamps.includes('wadirum')) {
       STATE.stamps.push('wadirum');
     }
     await persistData();
-    toast(t('ok'));
-    location.hash = '#/passport';
+    location.hash = isGuided ? '#/result' : '#/passport';
+    toast(savedToAccount
+      ? isGuided ? t('demoPaymentSuccess') : t('ok')
+      : t('paymentPersistenceError'));
   }
 });
 
@@ -2112,13 +2631,18 @@ document.addEventListener('input', e => {
     }
   }
 
+});
+
+document.addEventListener('change', e => {
   if (e.target.dataset.p) {
-    STATE.pref[e.target.dataset.p] = e.target.value;
+    const key = e.target.dataset.p;
+    STATE.pref[key] = key === 'travelers' ? Number(e.target.value) : e.target.value;
+    STATE.result = null;
   }
 });
 
 // Hash Routing Listener
-window.addEventListener('hashchange', render);
+window.addEventListener('hashchange', () => render(false));
 
 // Initial Render
 render();
