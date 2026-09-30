@@ -145,7 +145,7 @@ const getPlaceImageStyle = place => {
     ? `background-image: url('${image}')`
     : 'background-image: linear-gradient(135deg, #48535a, #131922)';
 };
-const escapeHTML = value => String(value).replace(/[&<>"']/g, character => ({
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, character => ({
   '&': '&amp;',
   '<': '&lt;',
   '>': '&gt;',
@@ -1469,7 +1469,12 @@ $('#lang').addEventListener('click', () => {
 });
 
 $('#searchNavBtn').addEventListener('click', () => {
-  location.hash = '#/discover';
+  if (location.hash === '#/discover') {
+    $('#sq')?.focus();
+  } else {
+    location.hash = '#/discover';
+    setTimeout(() => $('#sq')?.focus(), 80);
+  }
 });
 
 // Trip Algorithm Builder
@@ -1482,10 +1487,13 @@ function generateTripPlan() {
     !['wadirum_night', 'jerash_colonnade'].includes(place.id)
     && !(startsInAqaba && place.id === 'aqaba')
   );
-  const filtered = candidates.map(place => ({
-    place,
-    score: (likes.includes(place.c) ? 4 : 0) + (['petra', 'wadirum'].includes(place.id) ? 3 : 0)
-  })).sort((a, b) => b.score - a.score || a.place.o - b.place.o);
+  const filtered = candidates.map(place => {
+    const isUserSaved = STATE.saved.includes(place.id);
+    return {
+      place,
+      score: (isUserSaved ? 25 : 0) + (likes.includes(place.c) ? 4 : 0) + (['petra', 'wadirum'].includes(place.id) ? 3 : 0)
+    };
+  }).sort((a, b) => b.score - a.score || a.place.o - b.place.o);
 
   const selected = [];
   let currentDays = 0;
@@ -1834,7 +1842,9 @@ const VIEWS = {
           <p class="hero-sub">${STATE.lang === 'ar' ? place.ra : place.r} • ${STATE.lang === 'ar' ? place.subAr : place.sub}</p>
           
           <div class="row" style="margin-top: 20px; flex-wrap: wrap;">
-            <button type="button" class="pill" data-add="${place.id}">+ ${t('add')}</button>
+            <button type="button" class="pill ${isSaved ? 'pill-clay' : ''}" data-add="${place.id}">
+              ${isSaved ? (STATE.lang === 'ar' ? '✓ في رحلتي' : '✓ In your trip') : `+ ${t('add')}`}
+            </button>
             <a href="${gmapsUrl}" target="_blank" rel="noopener" class="gmaps-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
@@ -1948,8 +1958,10 @@ const VIEWS = {
             `).join('')}
           </div>
 
-          <button type="button" class="pill pill-clay" style="width: 100%; margin-top: 24px; padding: 14px;" data-add="${place.id}">
-            ${STATE.lang === 'ar' ? `أضف ${getName(place)} لرحلتي` : `Add ${getName(place)} to my trip`}
+          <button type="button" class="pill ${isSaved ? 'pill-dark' : 'pill-clay'}" style="width: 100%; margin-top: 24px; padding: 14px;" data-add="${place.id}">
+            ${isSaved
+              ? (STATE.lang === 'ar' ? `✓ ${getName(place)} مضاف لرحلتك (اضغط للإزالة)` : `✓ ${getName(place)} in your trip (click to remove)`)
+              : (STATE.lang === 'ar' ? `+ أضف ${getName(place)} لرحلتي` : `+ Add ${getName(place)} to my trip`)}
           </button>
         </div>
       </div>
@@ -2274,6 +2286,7 @@ const VIEWS = {
       </div>
     </div>
   `,
+  experiences: () => VIEWS.experience(),
 
   // 7. Checkout (Page 11)
   checkout: () => {
@@ -2594,6 +2607,33 @@ const VIEWS = {
           }).join('')}
         </div>
       `}
+
+      ${Array.isArray(STATE.saved) && STATE.saved.length ? `
+        <div style="margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--border-dark);">
+          <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="font-size: 20px; margin-bottom: 4px;">${STATE.lang === 'ar' ? 'المحطات والأماكن المضافة لرحلتك' : 'Added Places & Route Stops'} (${STATE.saved.length})</h3>
+              <p class="sub" style="font-size: 13px; margin: 0;">${STATE.lang === 'ar' ? 'هذه الأماكن مدمجة تلقائياً في حساب مسار رحلتك في الأردن.' : 'These places are prioritized and built into your custom Jordan route.'}</p>
+            </div>
+            <button type="button" class="pill pill-clay pill-sm" onclick="location.hash='#/result'">${STATE.lang === 'ar' ? 'عرض المسار والجدول' : 'View Suggested Route'} ↗</button>
+          </div>
+          <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px;">
+            ${STATE.saved.map(id => PLACES.find(p => p.id === id)).filter(Boolean).map(place => `
+              <div class="box" style="padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <div class="trip-preview-image trip-preview-image-small" style="${getPlaceImageStyle(place)}; height: 110px; margin-bottom: 10px; border-radius: 8px;"></div>
+                  <h4 style="font-size: 15px; margin-bottom: 2px;">${getName(place)}</h4>
+                  <p class="sub" style="font-size: 12px; margin-bottom: 10px;">${STATE.lang === 'ar' ? place.ra : place.r}</p>
+                </div>
+                <div class="row" style="gap: 8px; justify-content: space-between;">
+                  <a href="#/place/${place.id}" class="pill pill-dark pill-sm" style="flex: 1; text-align: center; text-decoration: none;">${STATE.lang === 'ar' ? 'عرض' : 'View'}</a>
+                  <button type="button" class="pill pill-sm" style="color: #ef4444;" data-add="${place.id}" title="${STATE.lang === 'ar' ? 'إزالة' : 'Remove'}">✕</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
     `;
 
     return renderSidebarView('my-trips', content);
@@ -2793,15 +2833,24 @@ document.addEventListener('click', async e => {
     return;
   }
 
-  // Add to Trip
+  // Add / Remove from Trip
   if (dataset.add) {
     const id = dataset.add;
-    if (!STATE.saved.includes(id)) {
+    const isAlreadyAdded = STATE.saved.includes(id);
+    if (isAlreadyAdded) {
+      STATE.saved = STATE.saved.filter(x => x !== id);
+    } else {
       STATE.saved.push(id);
-      await persistData();
     }
+    STATE.result = null;
+    await persistData();
+    render();
     const place = PLACES.find(p => p.id === id);
-    toast(`✓ ${getName(place || PLACES[0])} ${STATE.lang === 'ar' ? 'أُضيفت إلى رحلتك' : 'added to your trip'}`);
+    const placeName = getName(place || PLACES[0]);
+    toast(isAlreadyAdded
+      ? `✕ ${placeName} ${STATE.lang === 'ar' ? 'أُزيلت من رحلتك' : 'removed from your trip'}`
+      : `✓ ${placeName} ${STATE.lang === 'ar' ? 'أُضيفت إلى مسار رحلتك' : 'added to your trip'}`
+    );
     return;
   }
 
