@@ -850,6 +850,14 @@ const I18N = {
     logoAr: 'دليل',
     discover: 'Discover',
     plan: 'Plan a trip',
+    myTrips: 'My Trips',
+    myTripsSub: 'Your saved travel routes and customized Jordan itineraries.',
+    noTripsYet: 'You have not saved any trips yet.',
+    planFirstTrip: 'Plan your first trip',
+    viewTrip: 'View Itinerary',
+    deleteTrip: 'Delete',
+    tripSavedSuccess: 'Trip saved successfully to My Trips!',
+    tripDeletedSuccess: 'Trip removed from My Trips',
     exp: 'Experiences',
     stories: 'Stories',
     signin: 'Sign in',
@@ -1033,6 +1041,14 @@ const I18N = {
     logoAr: 'دليل',
     discover: 'استكشف',
     plan: 'خطط رحلتك',
+    myTrips: 'رحلاتي',
+    myTripsSub: 'مساراتك وخطط رحلاتك المحفوظة للأردن.',
+    noTripsYet: 'لم تقم بحفظ أي رحلة بعد.',
+    planFirstTrip: 'خطط لرحلتك الأولى الآن',
+    viewTrip: 'عرض خطة الرحلة',
+    deleteTrip: 'حذف الرحلة',
+    tripSavedSuccess: 'تم حفظ الرحلة بنجاح في "رحلاتي"!',
+    tripDeletedSuccess: 'تم حذف الرحلة من "رحلاتي"',
     exp: 'تجارب محلية',
     stories: 'قصص',
     signin: 'تسجيل الدخول',
@@ -2333,65 +2349,185 @@ const VIEWS = {
   },
 
   // 8. User Dashboard (Page 12)
-  dashboard: () => renderSidebarView('dashboard', `
-    <h1 style="font-size: 28px;">${t('hi')}${STATE.user ? ', ' + (STATE.user.displayName || STATE.user.email.split('@')[0]) : ', Mohammed'}.</h1>
-    <p class="sub" style="margin-bottom: 24px;">${t('takingShape')}</p>
-    
-    <div class="box" style="padding: 24px; margin-bottom: 24px;">
-      <div class="two-col" style="align-items: center;">
-        <div class="trip-preview-image" style="${getPlaceImageStyle(PLACES.find(place => place.id === 'wadirum'))}"></div>
-        <div>
-          <span class="eyebrow">${t('upcomingTrip')}</span>
-          <h3 style="font-size: 22px;">South Jordan • 4 days</h3>
-          <p class="sub" style="margin: 4px 0 12px;">Petra + Wadi Rum + Aqaba</p>
-          
-          <span style="font-size: 12px; font-weight: 700; color: var(--olive);">${t('tripReady')}</span>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" style="width: 70%;"></div>
-          </div>
-          
-          <div class="row" style="gap: 10px;">
-            <button type="button" class="pill pill-dark pill-sm" onclick="location.hash='#/result'">${t('openItinerary')}</button>
-            <button type="button" class="pill pill-sm" onclick="location.hash='#/trip'">${t('editTrip')}</button>
+  dashboard: () => {
+    const latestTrip = STATE.trips && STATE.trips.length ? STATE.trips[0] : null;
+    const latestPlaceId = (latestTrip && latestTrip.places && latestTrip.places[0]) || 'wadirum';
+    const previewPlace = PLACES.find(p => p.id === latestPlaceId) || PLACES[0];
+
+    return renderSidebarView('dashboard', `
+      <h1 style="font-size: 28px;">${t('hi')}${STATE.user ? ', ' + (STATE.user.displayName || STATE.user.email.split('@')[0]) : ', Mohammed'}.</h1>
+      <p class="sub" style="margin-bottom: 24px;">${t('takingShape')}</p>
+      
+      <div class="box" style="padding: 24px; margin-bottom: 24px;">
+        <div class="two-col" style="align-items: center;">
+          <div class="trip-preview-image" style="${getPlaceImageStyle(previewPlace)}"></div>
+          <div>
+            <span class="eyebrow">${t('upcomingTrip')}</span>
+            <h3 style="font-size: 22px;">${latestTrip ? latestTrip.title : 'South Jordan • 4 days'}</h3>
+            <p class="sub" style="margin: 4px 0 12px;">${latestTrip ? latestTrip.summary : 'Petra + Wadi Rum + Aqaba'}</p>
+            
+            <span style="font-size: 12px; font-weight: 700; color: var(--olive);">${t('tripReady')}</span>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width: 70%;"></div>
+            </div>
+            
+            <div class="row" style="gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+              ${latestTrip ? `
+                <button type="button" class="pill pill-dark pill-sm" data-open-trip="${latestTrip.id}">${t('openItinerary')}</button>
+              ` : `
+                <button type="button" class="pill pill-dark pill-sm" onclick="location.hash='#/result'">${t('openItinerary')}</button>
+              `}
+              <button type="button" class="pill pill-sm" onclick="location.hash='#/trip'">${t('editTrip')}</button>
+              <button type="button" class="pill pill-clay pill-sm" onclick="location.hash='#/my-trips'">${t('myTrips')} (${STATE.trips ? STATE.trips.length : 0})</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
-      <div class="stat-box">
-        <small>• ${t('savedPlaces')}</small>
-        <b>${STATE.saved.length}</b>
-        <span>Across Jordan</span>
+      <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="stat-box">
+          <small>• ${t('savedPlaces')}</small>
+          <b>${STATE.saved.length}</b>
+          <span>Across Jordan</span>
+        </div>
+        <div class="stat-box">
+          <small>• ${t('myTrips')}</small>
+          <b>${STATE.trips ? STATE.trips.length : 0}</b>
+          <span>${STATE.lang === 'ar' ? 'رحلات محفوظة' : 'Saved routes'}</span>
+        </div>
+        <div class="stat-box">
+          <small>• ${t('pass')}</small>
+          <b>${STATE.stamps.length} / 12</b>
+          <span>Regions explored</span>
+        </div>
+        <div class="stat-box">
+          <small>• ${t('nextBadge')}</small>
+          <b style="font-size: 15px; margin-top: 8px;">${t('badgeName')}</b>
+          <span>${t('badgePlaces')}</span>
+        </div>
       </div>
-      <div class="stat-box">
-        <small>• ${t('tripsN')}</small>
-        <b>4</b>
-        <span>2 completed</span>
-      </div>
-      <div class="stat-box">
-        <small>• ${t('pass')}</small>
-        <b>${STATE.stamps.length} / 12</b>
-        <span>Regions explored</span>
-      </div>
-      <div class="stat-box">
-        <small>• ${t('nextBadge')}</small>
-        <b style="font-size: 15px; margin-top: 8px;">${t('badgeName')}</b>
-        <span>${t('badgePlaces')}</span>
-      </div>
-    </div>
 
-    <div style="margin-top: 40px;">
-      <h3>${t('weekendSec')}</h3>
-      <p class="sub">${t('weekendSub')}</p>
-      
-      <div class="grid" style="margin-top: 18px;">
-        ${[PLACES[2], PLACES[3], PLACES[5]].map(renderCard).join('')}
-      </div>
-    </div>
-  `),
+      <div style="margin-top: 40px;">
+        <div class="row" style="justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+          <div>
+            <h3>${t('myTrips')}</h3>
+            <p class="sub">${t('myTripsSub')}</p>
+          </div>
+          <button type="button" class="pill pill-sm" onclick="location.hash='#/my-trips'">${STATE.lang === 'ar' ? 'عرض كل الرحلات' : 'View all trips'}</button>
+        </div>
 
-  // 9. Jordan Passport (Page 13)
+        ${STATE.trips && STATE.trips.length ? `
+          <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+            ${STATE.trips.slice(0, 3).map(trip => `
+              <div class="box" style="padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <span class="badge badge-clay" style="font-size: 11px; margin-bottom: 8px;">${trip.days || 3} ${STATE.lang === 'ar' ? 'أيام' : 'Days'}</span>
+                  <h4 style="font-size: 17px; margin: 4px 0 8px;">${trip.title}</h4>
+                  <p class="sub" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">${trip.summary || ''}</p>
+                </div>
+                <button type="button" class="pill pill-dark pill-sm" style="width: 100%;" data-open-trip="${trip.id}">${t('viewTrip')}</button>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="box" style="padding: 24px; text-align: center;">
+            <p class="sub" style="margin-bottom: 12px;">${t('noTripsYet')}</p>
+            <button type="button" class="pill pill-clay pill-sm" onclick="location.hash='#/trip'">${t('planFirstTrip')}</button>
+          </div>
+        `}
+      </div>
+
+      <div style="margin-top: 40px;">
+        <h3>${t('weekendSec')}</h3>
+        <p class="sub">${t('weekendSub')}</p>
+        
+        <div class="grid" style="margin-top: 18px;">
+          ${[PLACES[2], PLACES[3], PLACES[5]].map(renderCard).join('')}
+        </div>
+      </div>
+    `);
+  },
+
+  // 9. My Trips View
+  'my-trips': () => {
+    const trips = Array.isArray(STATE.trips) ? STATE.trips : [];
+    
+    const content = `
+      <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <h1 style="font-size: 28px;">${t('myTrips')}</h1>
+          <p class="sub">${t('myTripsSub')}</p>
+        </div>
+        <button type="button" class="pill pill-clay" onclick="location.hash='#/trip'">+ ${t('plan')}</button>
+      </div>
+
+      ${trips.length === 0 ? `
+        <div class="box" style="text-align: center; padding: 48px 24px;">
+          <div style="font-size: 44px; margin-bottom: 16px;">✈️</div>
+          <h3 style="font-size: 20px; margin-bottom: 8px;">${t('noTripsYet')}</h3>
+          <p class="sub" style="margin-bottom: 24px; max-width: 440px; margin-left: auto; margin-right: auto;">
+            ${STATE.lang === 'ar' ? 'صمّم مسار رحلتك المخصص للأردن وسيكون محفوظاً هنا دائماً للرجوع إليه وتعديله في أي وقت.' : 'Craft your custom Jordan route and it will be saved here so you can revisit and edit anytime.'}
+          </p>
+          <button type="button" class="pill pill-clay pill-arrow" onclick="location.hash='#/trip'">
+            <span>${t('planFirstTrip')}</span>
+            <span class="arrow-icon">›</span>
+          </button>
+        </div>
+      ` : `
+        <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+          ${trips.map(trip => {
+            const firstPlaceId = (trip.places && trip.places[0]) || (trip.plan && trip.plan[0] && trip.plan[0][0] && trip.plan[0][0].id) || 'petra';
+            const firstPlace = PLACES.find(p => p.id === firstPlaceId) || PLACES[0];
+            const dateStr = trip.createdAt ? new Date(trip.createdAt).toLocaleDateString(STATE.lang === 'ar' ? 'ar-JO' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+            
+            return `
+              <div class="box" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <div class="trip-preview-image" style="${getPlaceImageStyle(firstPlace)}; height: 160px; margin-bottom: 16px;"></div>
+                  <div class="row" style="justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                    <span class="badge badge-clay" style="font-size: 11px;">${trip.days || 3} ${STATE.lang === 'ar' ? 'أيام' : 'Days'}</span>
+                    ${dateStr ? `<span style="font-size: 12px; color: var(--mut);">${dateStr}</span>` : ''}
+                  </div>
+                  <h3 style="font-size: 19px; margin-bottom: 8px;">${trip.title || (STATE.lang === 'ar' ? 'رحلة الأردن' : 'Jordan Trip')}</h3>
+                  <p class="sub" style="font-size: 13px; line-height: 1.5; margin-bottom: 16px;">
+                    ${trip.summary || (STATE.lang === 'ar' ? `انطلاق من ${trip.from || 'عمان'} • ميزانية ${trip.budget || 'متوسطة'}` : `Starting from ${trip.from || 'Amman'} • ${trip.budget || 'Mid'} Budget`)}
+                  </p>
+                  
+                  <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 16px; padding: 10px 0; border-top: 1px solid var(--border-dark); border-bottom: 1px solid var(--border-dark);">
+                    <div style="text-align: center;">
+                      <small style="font-size: 11px; color: var(--mut);">${t('stops')}</small>
+                      <b style="display: block; font-size: 15px;">${trip.stops || (trip.places ? trip.places.length : 4)}</b>
+                    </div>
+                    <div style="text-align: center;">
+                      <small style="font-size: 11px; color: var(--mut);">${t('driving')}</small>
+                      <b style="display: block; font-size: 15px;">${trip.drive ? trip.drive + 'h' : '6h'}</b>
+                    </div>
+                    <div style="text-align: center;">
+                      <small style="font-size: 11px; color: var(--mut);">${t('budget')}</small>
+                      <b style="display: block; font-size: 15px;">${trip.cost ? trip.cost + ' JOD' : '150 JOD'}</b>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row" style="gap: 10px; justify-content: space-between; margin-top: 10px;">
+                  <button type="button" class="pill pill-dark pill-sm" style="flex: 1;" data-open-trip="${trip.id}">
+                    ${t('viewTrip')}
+                  </button>
+                  <button type="button" class="pill pill-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" data-delete-trip="${trip.id}" title="${t('deleteTrip')}">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `}
+    `;
+
+    return renderSidebarView('my-trips', content);
+  },
+
+  // 10. Jordan Passport (Page 13)
   passport: () => renderSidebarView('passport', `
     <h1 style="font-size: 28px;">${t('pass')}</h1>
     <p class="sub" style="margin-bottom: 28px;">${t('passS')}</p>
@@ -2447,9 +2583,13 @@ function renderSidebarView(activeRoute, contentHtml) {
           <div class="sidebar-link-dot"></div>
           <span>${t('ov')}</span>
         </a>
+        <a class="sidebar-link ${activeRoute === 'my-trips' ? 'active' : ''}" href="#/my-trips">
+          <div class="sidebar-link-dot"></div>
+          <span>${t('myTrips')} (${STATE.trips ? STATE.trips.length : 0})</span>
+        </a>
         <a class="sidebar-link ${activeRoute === 'trip' ? 'active' : ''}" href="#/trip">
           <div class="sidebar-link-dot"></div>
-          <span>${t('trips')}</span>
+          <span>${t('plan')}</span>
         </a>
         <a class="sidebar-link ${activeRoute === 'discover' ? 'active' : ''}" href="#/discover">
           <div class="sidebar-link-dot"></div>
@@ -2485,8 +2625,9 @@ function updateNav() {
   const linksHtml = [
     ['discover', 'discover'],
     ['trip', 'plan'],
+    ['my-trips', 'myTrips'],
     ['experience', 'exp'],
-    ['dashboard', 'stories']
+    ['dashboard', 'ov']
   ].map(([r, labelKey]) => `
     <a href="#/${r}" class="${rootRoute === r ? 'on' : ''}">${t(labelKey)}</a>
   `).join('');
@@ -2496,7 +2637,8 @@ function updateNav() {
   const tabsHtml = [
     ['', '⌂', t('discover')],
     ['trip', '✦', t('plan')],
-    ['dashboard', '♡', t('sv')],
+    ['my-trips', '✈', t('myTrips')],
+    ['dashboard', '♡', t('ov')],
     ['passport', '◎', t('pass')]
   ].map(([r, icon, label]) => `
     <a href="#/${r}" class="tab-item ${rootRoute === r ? 'active' : ''}">
@@ -2530,10 +2672,36 @@ function render(preserveScroll = true) {
 
 // Global Click Event Handler
 document.addEventListener('click', async e => {
-  const target = e.target.closest('[data-save],[data-add],[data-cat],[data-who],[data-like],[data-pace],[data-stamp],#nx,#bk,#sv,#rs,#pay,#toggleMapBtn');
+  const target = e.target.closest('[data-save],[data-add],[data-cat],[data-who],[data-like],[data-pace],[data-stamp],[data-open-trip],[data-delete-trip],#nx,#bk,#sv,#rs,#pay,#toggleMapBtn');
   if (!target) return;
 
   const dataset = target.dataset;
+
+  // Open / View Saved Trip
+  if (dataset.openTrip) {
+    const tripId = dataset.openTrip;
+    const trip = (STATE.trips || []).find(t => t.id === tripId);
+    if (trip) {
+      if (trip.pref) STATE.pref = { ...STATE.pref, ...trip.pref };
+      if (trip.result) {
+        STATE.result = trip.result;
+      } else {
+        STATE.result = null;
+      }
+      location.hash = '#/result';
+    }
+    return;
+  }
+
+  // Delete Saved Trip
+  if (dataset.deleteTrip) {
+    const tripId = dataset.deleteTrip;
+    STATE.trips = (STATE.trips || []).filter(t => t.id !== tripId);
+    await persistData();
+    render();
+    toast(t('tripDeletedSuccess'));
+    return;
+  }
 
   // Toggle Map View in Discover screen
   if (target.id === 'toggleMapBtn') {
@@ -2645,22 +2813,52 @@ document.addEventListener('click', async e => {
     return;
   }
 
-  // Save Route
+  // Save Route / Trip
   if (target.id === 'sv') {
     if (!STATE.user) {
       toast(t('login'));
       $('#auth').click();
       return;
     }
-    STATE.trips.push({
+
+    const planResult = STATE.result || generateTripPlan();
+    STATE.result = planResult;
+
+    const allStops = [...new Set(planResult.plan.flat())];
+    const fromCity = STATE.pref.from === 'Aqaba' ? (STATE.lang === 'ar' ? 'العقبة' : 'Aqaba') : (STATE.lang === 'ar' ? 'عمان' : 'Amman');
+    const tripTitle = `${STATE.pref.days} ${STATE.lang === 'ar' ? 'أيام في الأردن' : 'Days in Jordan'} • ${STATE.lang === 'ar' ? `انطلاق من ${fromCity}` : `From ${fromCity}`}`;
+    const tripSummary = allStops.map(p => getName(p)).slice(0, 4).join(' → ');
+
+    if (!Array.isArray(STATE.trips)) STATE.trips = [];
+
+    const tripData = {
       id: 'trip-' + Date.now(),
-      title: 'Jordan Route',
+      title: tripTitle,
+      summary: tripSummary,
       days: STATE.pref.days,
-      places: STATE.saved,
-      at: Date.now()
-    });
+      from: STATE.pref.from,
+      budget: STATE.pref.budget,
+      who: STATE.pref.who,
+      tourType: STATE.pref.tourType,
+      places: allStops.map(p => p.id),
+      result: planResult,
+      pref: { ...STATE.pref },
+      stops: planResult.stops,
+      cost: planResult.cost,
+      drive: planResult.drive,
+      createdAt: Date.now()
+    };
+
+    const existingIndex = STATE.trips.findIndex(t => t.title === tripTitle && t.days === STATE.pref.days);
+    if (existingIndex >= 0) {
+      STATE.trips[existingIndex] = tripData;
+    } else {
+      STATE.trips.unshift(tripData);
+    }
+
     await persistData();
-    toast(`✓ ${t('save')}`);
+    toast(`✓ ${t('tripSavedSuccess')}`);
+    location.hash = '#/my-trips';
     return;
   }
 
