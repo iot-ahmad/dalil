@@ -928,6 +928,14 @@ const I18N = {
     demoCardPlaceholder: '4242 4242 4242 4242',
     demoPaymentSuccess: 'Demo booking confirmed. No money was charged.',
     bookingConfirmed: 'Booking confirmed',
+    bookingRef: 'Booking Reference',
+    bookingSuccessSub: 'Your reservation has been confirmed. A new stamp has been added to your Jordan Passport!',
+    viewPassport: 'View Jordan Passport',
+    viewTrips: 'View My Trips',
+    exploreMore: 'Explore More Experiences',
+    confirmationDetails: 'Reservation Details',
+    confirmedBadge: 'Booking Confirmed',
+    demoPaid: 'Demo — Paid',
     tourTypeLabel: 'Tour option',
     paymentError: 'Check the card number, expiry date, and security code.',
     paymentPersistenceError: 'The demo booking was confirmed, but could not be saved to your account.',
@@ -1119,6 +1127,14 @@ const I18N = {
     demoCardPlaceholder: '4242 4242 4242 4242',
     demoPaymentSuccess: 'تم تأكيد الحجز التجريبي. لم يتم خصم أي مبلغ.',
     bookingConfirmed: 'تم تأكيد الحجز',
+    bookingRef: 'رقم الحجز المرجعي',
+    bookingSuccessSub: 'تم تأكيد حجزك بنجاح. تمت إضافة ختم جديد إلى جواز سفرك الأردني!',
+    viewPassport: 'عرض جواز سفر الأردن',
+    viewTrips: 'عرض رحلاتي',
+    exploreMore: 'استكشف المزيد من التجارب',
+    confirmationDetails: 'تفاصيل الحجز',
+    confirmedBadge: 'تم تأكيد الحجز',
+    demoPaid: 'تجريبي — مدفوع',
     tourTypeLabel: 'نوع الجولة',
     paymentError: 'تحقق من رقم البطاقة وتاريخ الانتهاء ورمز الأمان.',
     paymentPersistenceError: 'تم تأكيد الحجز التجريبي، لكن تعذر حفظه في حسابك.',
@@ -1262,6 +1278,8 @@ const STATE = {
     tourDate: getDefaultTourDate()
   },
   checkoutType: 'wadirum',
+  checkoutStep: 2,
+  lastBooking: null,
   bk: {
     date: '2026-10-18',
     guests: 2
@@ -2266,6 +2284,60 @@ const VIEWS = {
     const bookingName = isGuided
       ? STATE.pref.tourType === 'group' ? t('groupTour') : t('privateGuide')
       : t('night');
+
+    // Step 3: Confirmed Screen
+    if (STATE.checkoutStep === 3 && STATE.lastBooking) {
+      const b = STATE.lastBooking;
+      const bPlace = PLACES.find(place => place.id === (b.placeId || 'wadirum')) || PLACES[1];
+      return `
+        <div class="wrap">
+          <h1>${t('bookingConfirmed')}</h1>
+          <p class="sub">${t('bookingSuccessSub')}</p>
+
+          <div class="stepper" style="margin: 20px 0 32px;">
+            <div class="step-item completed"><span class="step-num">✓</span><span>1. ${t('detailsStep')}</span></div>
+            <div class="step-item completed"><span class="step-num">✓</span><span>2. ${t('paymentStep')}</span></div>
+            <div class="step-item active"><span class="step-num">✓</span><span>3. ${t('confirmedStep')}</span></div>
+          </div>
+
+          <div class="box" style="max-width: 680px; margin: 0 auto; text-align: center; padding: 36px 28px;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(85, 107, 47, 0.15); color: var(--olive); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin: 0 auto 18px;">
+              ✓
+            </div>
+            <h2 style="font-size: 24px; margin-bottom: 8px;">${t('confirmedBadge')}</h2>
+            <p class="sub" style="margin-bottom: 20px;">${t('bookingRef')}: <strong style="color: var(--clay); font-family: monospace; font-size: 16px;">${b.ref}</strong></p>
+
+            <div class="trip-preview-image trip-preview-image-small" style="${getPlaceImageStyle(bPlace)}; margin: 0 auto 20px;"></div>
+
+            <div class="specs-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px; text-align: ${STATE.lang === 'ar' ? 'right' : 'left'};">
+              <div class="spec-item">
+                <span class="spec-label">${t('experienceLabel')}</span>
+                <span class="spec-val">${b.name}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">${t('date')}</span>
+                <span class="spec-val">${b.date}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">${t('guestCountLabel')}</span>
+                <span class="spec-val">${b.guests} ${t('guestUnit')}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">${t('totalLabel')}</span>
+                <span class="spec-val" style="color: var(--clay); font-weight: 700;">${b.total} JOD (${t('demoPaid')})</span>
+              </div>
+            </div>
+
+            <div class="row" style="justify-content: center; gap: 12px; flex-wrap: wrap;">
+              <a href="#/passport" class="pill pill-clay" style="text-decoration: none;">${t('viewPassport')} 🛂</a>
+              <a href="#/my-trips" class="pill pill-dark" style="text-decoration: none;">${t('viewTrips')}</a>
+              <a href="#/experiences" class="pill pill-sand" style="text-decoration: none;">${t('exploreMore')}</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     return `
       <div class="wrap">
         <h1>${t('payT')}</h1>
@@ -2293,7 +2365,7 @@ const VIEWS = {
             <div class="form-grid-2">
               <div class="form-group">
                 <label class="field-label" for="ce">${t('exp2')}</label>
-                <input type="text" class="form-input" id="ce" value="12/30" placeholder="MM/YY" autocomplete="off" maxlength="5">
+                <input type="text" class="form-input" id="ce" value="12/30" placeholder="MM/YY" autocomplete="off" maxlength="7">
               </div>
               <div class="form-group">
                 <label class="field-label" for="cv">${t('securityCode')}</label>
@@ -2792,6 +2864,7 @@ document.addEventListener('click', async e => {
           return;
         }
         STATE.checkoutType = 'guided';
+        STATE.checkoutStep = 2;
         STATE.step = 1;
         location.hash = '#/checkout';
         return;
@@ -2869,43 +2942,53 @@ document.addEventListener('click', async e => {
       guests: Number($('#bg')?.value || 2)
     };
     STATE.checkoutType = 'wadirum';
+    STATE.checkoutStep = 2;
     location.hash = '#/checkout';
     return;
   }
 
   // Complete Payment
   if (target.id === 'pay') {
-    const cardNumber = $('#cc')?.value.replace(/\D/g, '') || '';
-    const expiry = $('#ce')?.value.trim() || '';
-    const securityCode = $('#cv')?.value.trim() || '';
-    const expiryMatch = expiry.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
-    const expiryDate = expiryMatch
-      ? new Date(2000 + Number(expiryMatch[2]), Number(expiryMatch[1]), 1)
-      : null;
-    const currentMonth = new Date();
-    currentMonth.setDate(1);
-    currentMonth.setHours(0, 0, 0, 0);
-    if (cardNumber !== '4242424242424242'
-      || !expiryDate
-      || expiryDate <= currentMonth
-      || !/^\d{3,4}$/.test(securityCode)) {
+    const cardNumber = ($('#cc')?.value || '').replace(/\D/g, '');
+    const expiry = ($('#ce')?.value || '').trim();
+    const securityCode = ($('#cv')?.value || '').trim();
+
+    // Friendly validation for demo mode
+    const isValidCard = cardNumber.length >= 12;
+    const isValidCode = /^\d{3,4}$/.test(securityCode);
+    const expiryMatch = expiry.match(/^(0?[1-9]|1[0-2])\/?(\d{2}|\d{4})$/);
+    const isValidExpiry = Boolean(expiryMatch);
+
+    if (!isValidCard || !isValidExpiry || !isValidCode) {
       toast(t('paymentError'));
       return;
     }
 
     const isGuided = STATE.checkoutType === 'guided';
+    const total = isGuided
+      ? getGuidedTourTotal(STATE.pref.tourType, Number(STATE.pref.travelers))
+      : 95;
+    const bookingName = isGuided
+      ? (STATE.pref.tourType === 'group' ? t('groupTour') : t('privateGuide'))
+      : `${t('night')} (${t('privateDome')})`;
+    const bookingRef = 'DL-' + Math.floor(10000 + Math.random() * 90000);
+
     const booking = {
+      ref: bookingRef,
       uid: STATE.user?.uid || 'guest',
       place: isGuided ? 'guided-tour' : 'wadirum',
+      placeId: isGuided ? 'petra' : 'wadirum',
+      name: bookingName,
       tourType: isGuided ? STATE.pref.tourType : 'wadi-rum-night',
       date: isGuided ? STATE.pref.tourDate : STATE.bk.date,
       guests: isGuided ? Number(STATE.pref.travelers) : STATE.bk.guests,
-      total: isGuided
-        ? getGuidedTourTotal(STATE.pref.tourType, Number(STATE.pref.travelers))
-        : 95,
+      total: total,
       status: 'demo-confirmed',
       timestamp: Date.now()
     };
+
+    STATE.lastBooking = booking;
+    STATE.checkoutStep = 3;
 
     let savedToAccount = true;
     if (fb && STATE.user) {
@@ -2921,7 +3004,7 @@ document.addEventListener('click', async e => {
       STATE.stamps.push('wadirum');
     }
     await persistData();
-    location.hash = isGuided ? '#/result' : '#/passport';
+    render();
     toast(savedToAccount
       ? isGuided ? t('demoPaymentSuccess') : t('ok')
       : t('paymentPersistenceError'));
