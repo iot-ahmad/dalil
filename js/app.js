@@ -1,4 +1,13 @@
-import { firebaseConfig as cfg } from './firebase-config.js';
+// Firebase config (inlined so app works from file:// without a server)
+const cfg = {
+  apiKey: "AIzaSyAIbvBb3_e96Mcckgj_ERv10zCCUmczCIE",
+  authDomain: "dalil-93da6.firebaseapp.com",
+  projectId: "dalil-93da6",
+  storageBucket: "dalil-93da6.firebasestorage.app",
+  messagingSenderId: "486528667445",
+  appId: "1:486528667445:web:085657b8665872bf4d467c",
+  measurementId: "G-DTVE09HNWF"
+};
 
 const FIREBASE_CDN = 'https://www.gstatic.com/firebasejs/10.12.0/';
 let fb = null;
@@ -246,24 +255,32 @@ const getPlaceTimeline = place => {
   ];
 };
 
-// Initialize Firebase if user provided real keys
-if (cfg && cfg.apiKey && !cfg.apiKey.startsWith('YOUR')) {
-  try {
-    const [appModule, authModule, firestoreModule] = await Promise.all(
-      ['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'].map(f => import(FIREBASE_CDN + f))
-    );
-    const app = appModule.initializeApp(cfg);
-    fb = {
-      authMod: authModule,
-      fsMod: firestoreModule,
-      auth: authModule.getAuth(app),
-      db: firestoreModule.getFirestore(app),
-      googleProvider: new authModule.GoogleAuthProvider()
-    };
-  } catch (err) {
-    console.warn('Firebase initialization skipped or failed:', err);
+// Initialize Firebase (async IIFE — supports file:// without a local server)
+(async () => {
+  if (cfg && cfg.apiKey && !cfg.apiKey.startsWith('YOUR')) {
+    try {
+      const [appModule, authModule, firestoreModule] = await Promise.all(
+        ['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'].map(f => import(FIREBASE_CDN + f))
+      );
+      const app = appModule.initializeApp(cfg);
+      fb = {
+        authMod: authModule,
+        fsMod: firestoreModule,
+        auth: authModule.getAuth(app),
+        db: firestoreModule.getFirestore(app),
+        googleProvider: new authModule.GoogleAuthProvider()
+      };
+    } catch (err) {
+      console.warn('Firebase initialization skipped or failed:', err);
+    }
   }
-}
+  // Load saved data & render (Firebase auth listener will re-render on sign-in)
+  if (!fb) {
+    STATE.user = getLS('dalil_user');
+    await loadData();
+  }
+  render();
+})();
 
 // Helpers
 const $ = selector => document.querySelector(selector);
@@ -1380,9 +1397,6 @@ if (fb) {
     await loadData();
     render();
   });
-} else {
-  STATE.user = getLS('dalil_user');
-  await loadData();
 }
 
 async function handleEmailAuth(isRegister) {
@@ -3085,6 +3099,3 @@ document.addEventListener('change', e => {
 
 // Hash Routing Listener
 window.addEventListener('hashchange', () => render(false));
-
-// Initial Render
-render();
