@@ -1231,10 +1231,25 @@ async function persistData() {
   }
 }
 
-// Authentication Logic
+// Authentication Logic & User Profile Sync
 if (fb) {
   fb.authMod.onAuthStateChanged(fb.auth, async u => {
     STATE.user = u;
+    if (u) {
+      try {
+        // Sync user profile info to Firestore database
+        const userProfileRef = fb.fsMod.doc(fb.db, 'users', u.uid);
+        await fb.fsMod.setDoc(userProfileRef, {
+          uid: u.uid,
+          email: u.email,
+          displayName: u.displayName || u.email.split('@')[0],
+          photoURL: u.photoURL || null,
+          lastLoginAt: Date.now()
+        }, { merge: true });
+      } catch (err) {
+        console.warn('User profile sync error:', err);
+      }
+    }
     await loadData();
     render();
   });
