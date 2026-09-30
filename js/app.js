@@ -153,6 +153,99 @@ const escapeHTML = value => String(value).replace(/[&<>"']/g, character => ({
   "'": '&#39;'
 }[character]));
 
+const PLACE_TIMELINES = {
+  petra: [
+    { time: '07:30', ar: 'الدخول عبر السيق ومطل الخزنة', en: 'Enter through the Siq & Treasury' },
+    { time: '10:00', ar: 'المسرح والقبور الملكية', en: 'Theatre & Royal Tombs trail' },
+    { time: '13:00', ar: 'استراحة غداء وشاي بالنعناع', en: 'Lunch break & mint tea' },
+    { time: '15:00', ar: 'مسار الدير والغروب البانورامي', en: 'Monastery route & sunset view' }
+  ],
+  aqaba: [
+    { time: '09:00', ar: 'جولة قارب وغوص في الحديقة اليابانية', en: 'Boat trip & snorkeling at Japanese Garden' },
+    { time: '12:30', ar: 'استراحة وغداء صيادية سمك طازجة', en: 'Fresh seafood Sayadieh lunch' },
+    { time: '15:30', ar: 'زيارة قلعة العقبة ومتحف الآثار', en: 'Aqaba Castle & archaeology museum' },
+    { time: '18:00', ar: 'جولة مسائية في واحة أيلة والكورنيش', en: 'Sunset walk at Ayla Marina & Corniche' }
+  ],
+  wadirum: [
+    { time: '08:30', ar: 'الانطلاق في جولة دفع رباعي بصحراء رم', en: '4x4 desert safari adventure' },
+    { time: '11:30', ar: 'استكشاف مضيق الخزعلي وجسر أم فروث', en: 'Khazali Canyon & Um Fruth bridge' },
+    { time: '14:00', ar: 'غداء بدوي وشاي بالميرمية', en: 'Bedouin lunch & desert tea' },
+    { time: '17:30', ar: 'غروب الشمس الذهبي ورصد النجوم', en: 'Golden sunset & night stargazing' }
+  ],
+  wadirum_night: [
+    { time: '16:30', ar: 'الوصول إلى المخيم والاستقرار بالقباب', en: 'Arrive at camp & settle in domes' },
+    { time: '18:00', ar: 'مشاهدة الغروب فوق الكثبان الرملية', en: 'Sunset view over red dunes' },
+    { time: '20:00', ar: 'عشاء الزرب البدوي وسهرة السمر', en: 'Traditional Zarb dinner & campfire' },
+    { time: '21:30', ar: 'جلسة رصد المجرات والنجوم', en: 'Milky Way & night sky observation' }
+  ],
+  deadsea: [
+    { time: '09:30', ar: 'تجربة الطفو في مياه البحر الميت وطين المعادن', en: 'Dead Sea floating & mineral mud bath' },
+    { time: '12:00', ar: 'استراحة استجمام ومسبح المياه العذبة', en: 'Freshwater pool & spa relaxation' },
+    { time: '14:00', ar: 'غداء بإطلالة بانورامية على البحر', en: 'Lunch with Dead Sea panoramic views' },
+    { time: '16:30', ar: 'مشاهدة الغروب وانعكاسات الأملاح', en: 'Sunset golden glow & salt formations' }
+  ],
+  main: [
+    { time: '09:00', ar: 'الاستحمام تحت شلالات المياه المعدنية الحارة', en: 'Thermal mineral waterfall bath' },
+    { time: '11:30', ar: 'جلسة استرخاء في كهف البخار الطبيعي', en: 'Natural rock steam cave session' },
+    { time: '13:30', ar: 'غداء مشاوي وخبز الصاج في الوادي', en: 'Canyon valley lunch & Saj bread' },
+    { time: '16:00', ar: 'جولة تصوير بين جروف الوادي المهيبة', en: 'Canyon cliff walks & photography' }
+  ],
+  jerash: [
+    { time: '08:30', ar: 'عبور قوس هادريان والساحة البيضاوية', en: 'Hadrian’s Arch & Oval Plaza' },
+    { time: '10:30', ar: 'المشي في شارع الأعمدة (الكاردو)', en: 'Walk the Cardo Maximus' },
+    { time: '12:30', ar: 'زيارة معبد أرتميس والمسرح الجنوبي', en: 'Temple of Artemis & South Theatre' },
+    { time: '14:30', ar: 'غداء جرشي تقليدي في المطاعم المجاورة', en: 'Traditional local Jerash lunch' }
+  ],
+  jerash_colonnade: [
+    { time: '09:00', ar: 'جولة تصوير الأعمدة الكورنثية الذهبية', en: 'Corinthian columns photo walk' },
+    { time: '10:30', ar: 'استكشاف نافورة سبيل الحوريات الرخامية', en: 'Explore the Nymphaeum fountain' },
+    { time: '12:00', ar: 'مشاهدة آثار العربات الرومانية المنحوتة', en: 'Spot ancient chariot wheel tracks' },
+    { time: '13:30', ar: 'استراحة كعك القدس بالسمسم وشاي الأعشاب', en: 'Sesame bread & herbal tea break' }
+  ],
+  ajloun: [
+    { time: '09:00', ar: 'استكشاف قلعة عجلون والأبراج الأثرية', en: 'Explore Ajloun Castle & towers' },
+    { time: '11:30', ar: 'ركوب تلفريك عجلون فوق الغابات الخضراء', en: 'Ajloun Cable Car ride over forests' },
+    { time: '13:30', ar: 'غداء بلدي بمنتجات زيت الزيتون والزعتر', en: 'Countryside lunch with local olive oil' },
+    { time: '15:30', ar: 'جولة في مسارات محمية غابات عجلون', en: 'Ajloun Forest Reserve nature trail' }
+  ],
+  amman: [
+    { time: '09:00', ar: 'زيارة جبل القلعة والمتحف الأثري', en: 'Amman Citadel & national museum' },
+    { time: '11:30', ar: 'استكشاف المدرج الروماني وأسواق وسط البلد', en: 'Roman Theatre & Downtown souqs' },
+    { time: '13:30', ar: 'غداء أكلات شعبية وكنافة حبيبة التراثية', en: 'Traditional food & Habiba Kunafeh' },
+    { time: '16:00', ar: 'جولة في شارع الرينبو والمقاهي العصرية', en: 'Rainbow Street & local art cafés' }
+  ],
+  salt: [
+    { time: '09:30', ar: 'المشي في شارع الحمام والأسواق التراثية', en: 'Hammam Street & historic markets' },
+    { time: '11:30', ar: 'زيارة بيت أبو جابر ومتحف السلط التاريخي', en: 'Abu Jaber House & heritage museum' },
+    { time: '13:30', ar: 'غداء أردني تقليدي وكرم ضيافة محلي', en: 'Authentic Jordanian lunch & hospitality' },
+    { time: '15:30', ar: 'إطلالة بانورامية من مطل القلعة', en: 'Panoramic views from the Citadel' }
+  ],
+  north: [
+    { time: '09:30', ar: 'التجول بين آثار جدارا البازلتية السوداء', en: 'Explore ancient black basalt Gadara' },
+    { time: '11:30', ar: 'الاستمتاع بإطلالة بحيرة طبريا وهضبة الجولان', en: 'Sea of Galilee & Golan Heights vista' },
+    { time: '13:30', ar: 'غداء ريفي من مزارع الشمال الأردني', en: 'Farm-to-table Northern lunch' },
+    { time: '15:30', ar: 'جولة بين بساتين الزيتون والقرى الهادئة', en: 'Olive grove walk & countryside quiet' }
+  ]
+};
+
+const getPlaceTimeline = place => {
+  if (place && PLACE_TIMELINES[place.id]) return PLACE_TIMELINES[place.id];
+  if (place && place.highlights && place.highlights.length) {
+    const times = ['09:00', '11:30', '14:00', '16:30'];
+    return place.highlights.slice(0, 4).map((h, i) => ({
+      time: times[i] || '12:00',
+      ar: h.ar,
+      en: h.en
+    }));
+  }
+  return [
+    { time: '09:00', ar: `الوصول وبدء استكشاف ${place ? place.a : ''}`, en: `Arrive & explore ${place ? place.n : ''}` },
+    { time: '12:30', ar: 'استراحة وتناول وجبة محلية', en: 'Lunch break & local dining' },
+    { time: '15:00', ar: 'جولة المعالم الرئيسية والتصوير', en: 'Main highlights tour & photos' },
+    { time: '17:30', ar: 'وقت الغروب والإطلالات البانورامية', en: 'Sunset & scenic viewpoints' }
+  ];
+};
+
 // Initialize Firebase if user provided real keys
 if (cfg && cfg.apiKey && !cfg.apiKey.startsWith('YOUR')) {
   try {
@@ -793,11 +886,11 @@ const I18N = {
     save0: "Start saving places. We'll keep the route tidy.",
     savedPlaces: 'Saved places',
     add: 'Add to my trip',
-    addToTrip: 'Add Petra to Trip',
+    addToTrip: 'Add to trip',
     why: 'Why it belongs on your route',
     pairWith: 'Pair it with',
     makeYours: 'Make it yours',
-    makeYoursSub: "Add Petra to a trip and we'll place it where it makes sense in your route.",
+    makeYoursSub: "Add this place to a trip and we'll place it where it makes sense in your route.",
     yourDay: 'Your day',
     cont: 'Continue',
     back: 'Back',
@@ -976,11 +1069,11 @@ const I18N = {
     save0: 'احفظ الأماكن التي تعجبك، وسنرتب لك الطريق.',
     savedPlaces: 'الأماكن المحفوظة',
     add: 'أضفها لرحلتي',
-    addToTrip: 'أضف البتراء لرحلتي',
+    addToTrip: 'أضف لرحلتي',
     why: 'لماذا تستحق أن تكون ضمن مسارك؟',
     pairWith: 'اقترح معها',
     makeYours: 'اجعلها رحلتك',
-    makeYoursSub: 'أضف البتراء إلى رحلة وسنضعها في المكان الأنسب داخل مسارك.',
+    makeYoursSub: 'أضف هذا المكان إلى رحلة وسنضعها في المكان الأنسب داخل مسارك.',
     yourDay: 'برنامج يومك',
     cont: 'متابعة',
     back: 'رجوع',
@@ -1802,23 +1895,27 @@ const VIEWS = {
 
         <div class="box dk">
           <h3>${t('makeYours')}</h3>
-          <p class="sub" style="margin-bottom: 20px;">${t('makeYoursSub')}</p>
+          <p class="sub" style="margin-bottom: 20px;">
+            ${STATE.lang === 'ar' ? `أضف ${getName(place)} إلى رحلة وسنضعها في المكان الأنسب داخل مسارك.` : `Add ${getName(place)} to a trip and we'll place it where it makes sense in your route.`}
+          </p>
           
           <div class="row" style="justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border-dark);">
-            <span style="font-weight: 700; font-size: 14px;">South Jordan • 4 days</span>
+            <span style="font-weight: 700; font-size: 14px;">${STATE.pref.days} ${STATE.lang === 'ar' ? 'أيام' : 'days'} • ${STATE.pref.from || 'Jordan'}</span>
             <span style="font-size: 12px; color: var(--sand); cursor: pointer;" onclick="location.hash='#/trip'">${STATE.lang === 'ar' ? 'تعديل' : 'Edit'}</span>
           </div>
 
           <h5 style="font-size: 13px; color: #94a3b8; margin: 16px 0 10px;">${t('yourDay')}</h5>
           <div class="timeline">
-            <div class="timeline-item"><div class="timeline-dot"></div><span>07:30 ${STATE.lang === 'ar' ? 'الدخول عبر السيق ومطل الخزنة' : 'Enter through the Siq'}</span></div>
-            <div class="timeline-item"><div class="timeline-dot"></div><span>10:00 ${STATE.lang === 'ar' ? 'المسرح والقبور الملكية' : 'Treasury + royal tombs trail'}</span></div>
-            <div class="timeline-item"><div class="timeline-dot"></div><span>13:00 ${STATE.lang === 'ar' ? 'استراحة غداء وشاي بالنعناع' : 'Lunch break & mint tea'}</span></div>
-            <div class="timeline-item"><div class="timeline-dot"></div><span>15:00 ${STATE.lang === 'ar' ? 'مسار الدير والغروب البانورامي' : 'Monastery route & sunset view'}</span></div>
+            ${getPlaceTimeline(place).map(item => `
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <span>${item.time} ${STATE.lang === 'ar' ? item.ar : item.en}</span>
+              </div>
+            `).join('')}
           </div>
 
           <button type="button" class="pill pill-clay" style="width: 100%; margin-top: 24px; padding: 14px;" data-add="${place.id}">
-            ${t('addToTrip')}
+            ${STATE.lang === 'ar' ? `أضف ${getName(place)} لرحلتي` : `Add ${getName(place)} to my trip`}
           </button>
         </div>
       </div>
